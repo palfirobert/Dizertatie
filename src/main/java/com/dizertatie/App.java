@@ -1,13 +1,9 @@
 package com.dizertatie;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
+import com.dizertatie.simulation.ExperimentLauncher;
+
+public class App {
+    public static void main(String[] args) {
+        ExperimentLauncher.main(args);
     }
 }
