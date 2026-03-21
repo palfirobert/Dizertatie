@@ -1,7 +1,7 @@
 package com.dizertatie.infrastructure;
 
 import com.dizertatie.config.SimulationConfig;
-import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared;
+import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerSpaceShared;
 import org.cloudbus.cloudsim.vms.Vm;
 import org.cloudbus.cloudsim.vms.VmSimple;
 
@@ -10,8 +10,8 @@ import java.util.List;
 
 /**
  * Builds heterogeneous VMs: FAST_VM, BALANCED_VM, ECO_VM.
- * Each VM uses a time-shared cloudlet scheduler so multiple cloudlets
- * can run concurrently on a single VM.
+ * Each VM uses a space-shared cloudlet scheduler so tasks get dedicated resources
+ * and finish in realistic time instead of being infinitely slowed down by time-sharing.
  */
 public final class VmFactory {
 
@@ -22,7 +22,7 @@ public final class VmFactory {
                 .setRam(SimulationConfig.VM_FAST_RAM)
                 .setBw(SimulationConfig.VM_BW)
                 .setSize(SimulationConfig.VM_SIZE)
-                .setCloudletScheduler(new CloudletSchedulerTimeShared());
+                .setCloudletScheduler(new CloudletSchedulerSpaceShared());
     }
 
     public static Vm createBalanced() {
@@ -30,7 +30,7 @@ public final class VmFactory {
                 .setRam(SimulationConfig.VM_BALANCED_RAM)
                 .setBw(SimulationConfig.VM_BW)
                 .setSize(SimulationConfig.VM_SIZE)
-                .setCloudletScheduler(new CloudletSchedulerTimeShared());
+                .setCloudletScheduler(new CloudletSchedulerSpaceShared());
     }
 
     public static Vm createEco() {
@@ -38,7 +38,7 @@ public final class VmFactory {
                 .setRam(SimulationConfig.VM_ECO_RAM)
                 .setBw(SimulationConfig.VM_BW)
                 .setSize(SimulationConfig.VM_SIZE)
-                .setCloudletScheduler(new CloudletSchedulerTimeShared());
+                .setCloudletScheduler(new CloudletSchedulerSpaceShared());
     }
 
     /**
