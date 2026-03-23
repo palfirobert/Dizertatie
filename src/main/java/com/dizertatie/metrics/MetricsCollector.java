@@ -73,8 +73,11 @@ public class MetricsCollector {
         double energyPerTask = completed > 0 ? totalWh / completed : 0.0;
 
         // ── CPU utilisation ───────────────────────────────────────────────────
-        double avgCpu = allVms.stream()
-                .mapToDouble(Vm::getCpuPercentUtilization)
+        // getCpuPercentUtilization() is instantaneous — always 0 after sim ends.
+        // Instead compute a time-weighted average from host state history.
+        double avgCpu = datacenters.stream()
+                .flatMap(dc -> dc.getHostList().stream())
+                .mapToDouble(this::timeWeightedCpuUtil)
                 .average().orElse(0.0);
 
         // ── Fault / failover ──────────────────────────────────────────────────
@@ -120,5 +123,30 @@ public class MetricsCollector {
             } catch (Exception ignored) {}
         }
         return totalJoules / 3_600.0; // J → Wh
+    }
+
+    /**
+     * Compute time-weighted CPU utilisation from host state history.
+     */
+    private double timeWeightedCpuUtil(Host host) {
+        List<HostStateHistoryEntry> history = host.getStateHistory();
+        if (history == null || history.isEmpty()) return 0.0;
+
+        double totalUtil = 0.0;
+        double totalTime = 0.0;
+
+        for (int i = 1; i < history.size(); i++) {
+            HostStateHistoryEntry prev = history.get(i - 1);
+            HostStateHistoryEntry curr = history.get(i);
+            double dt = curr.time() - prev.time(); // seconds
+            if (dt <= 0) continue;
+            double totalMips = host.getTotalMipsCapacity();
+            double util = totalMips > 0
+                    ? Math.min(1.0, (prev.requestedMips() + curr.requestedMips()) / 2.0 / totalMips)
+                    : 0.0;
+            totalUtil += util * dt;
+            totalTime += dt;
+        }
+        return totalTime > 0 ? totalUtil / totalTime : 0.0;
     }
 }
