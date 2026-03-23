@@ -1,7 +1,6 @@
 package com.dizertatie.scheduler;
 
 import com.dizertatie.config.SimulationConfig;
-import com.dizertatie.dataset.TaskMapper;
 import com.dizertatie.model.TaskRecord;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
@@ -62,7 +61,7 @@ public class MultiObjectiveScheduler extends BaseScheduler {
 
         for (Cloudlet c : ordered) {
             Vm best = selectVm(c, vms);
-            c.setVm(best);
+            assign(c, best);
 
             // Replicate CRITICAL tasks to a different-region VM
             if (isCritical(c)) {
@@ -74,60 +73,61 @@ public class MultiObjectiveScheduler extends BaseScheduler {
     // ── VM selection ───────────────────────────────────────────────────────────
 
     private Vm selectVm(Cloudlet c, List<Vm> vms) {
-        Vm best       = null;
+        Vm best = null;
         double bestScore = Double.MAX_VALUE;
 
         for (Vm vm : vms) {
-            if (!canFit(c, vm)) continue;
             double score = score(c, vm);
             if (score < bestScore) {
                 bestScore = score;
-                best      = vm;
+                best = vm;
             }
         }
-        return best != null ? best : vms.get(0); // absolute fallback
+        return best != null ? best : leastLoaded(vms);
     }
 
     // ── Scoring ────────────────────────────────────────────────────────────────
 
     double score(Cloudlet c, Vm vm) {
-        return SimulationConfig.W1_ENERGY    * energyCost(vm)
+        return SimulationConfig.W1_ENERGY    * energyCost(c, vm)
              + SimulationConfig.W2_SLA       * slaPenalty(c, vm)
              + SimulationConfig.W3_NETWORK   * networkCost(c, vm)
-             + SimulationConfig.W4_IDLE      * idlePenalty(vm)
+             + SimulationConfig.W4_IDLE      * idlePenalty(c, vm)
              + SimulationConfig.W5_REDUNDANCY* redundancyPenalty(c, vm);
     }
 
     /**
-     * EnergyCost — estimated Watt-seconds for this cloudlet on this VM.
-     * Normalised to [0,1] against a reference of 300 W × 3600 s.
+     * EnergyCost — estimated energy (Wh) to run this cloudlet on this VM,
+     * normalised to [0,1]. Uses static power model params and estimated exec time
+     * so it works correctly at scheduling time (before simulation starts).
      */
-    private double energyCost(Vm vm) {
+    private double energyCost(Cloudlet c, Vm vm) {
         Host host = vm.getHost();
-        if (host == null || host == Host.NULL) return 1.0;
-        double utilisation = Math.max(0.01, host.getCpuPercentUtilization());
-        // linear power: idle + (max - idle) * util
-        PowerModelData pm  = powerParams(host);
-        double watts       = pm.idle + (pm.max - pm.idle) * utilisation;
-        // normalise against worst case (max power × 1 hour)
-        return Math.min(1.0, watts / (SimulationConfig.POWER_FAST_MAX * 3_600.0));
+        PowerModelData pm = (host != null && host != Host.NULL)
+                ? powerParams(host) : new PowerModelData(SimulationConfig.POWER_FAST_IDLE, SimulationConfig.POWER_FAST_MAX);
+        double execSec = estimatedExecTime(c, vm);
+        // Use average of idle+max as a proxy for execution power
+        double avgWatts = (pm.idle + pm.max) / 2.0;
+        double wh = avgWatts * execSec / 3600.0;
+        // Normalise: worst case = max power * 1 hour
+        return Math.min(1.0, wh / (SimulationConfig.POWER_FAST_MAX * 1.0));
     }
 
     /**
-     * SlaPenalty — 1.0 if the estimated finish time exceeds the deadline, 0 otherwise.
+     * SlaPenalty — estimated finish time vs effective deadline (arrival + rel slack).
      * Partial penalty proportional to overrun fraction.
      */
     private double slaPenalty(Cloudlet c, Vm vm) {
         TaskRecord t = task(c);
         if (t == null) return 0.0;
-        double eta        = c.getSubmissionDelay() + estimatedExecTime(c, vm);
-        double deadline   = t.getDeadlineSec();
+        double eta      = c.getSubmissionDelay() + estimatedExecTime(c, vm);
+        double deadline = t.getEffectiveDeadlineSec();   // ← fixed: arrival + rel slack
         if (deadline <= 0) return 0.0;
         if (eta <= deadline) return 0.0;
-        double overrun    = (eta - deadline) / deadline;
-        double base       = t.isCritical()
-                            ? SimulationConfig.SLA_PENALTY_HIGH
-                            : SimulationConfig.SLA_PENALTY_LOW;
+        double overrun  = (eta - deadline) / deadline;
+        double base     = t.isCritical()
+                          ? SimulationConfig.SLA_PENALTY_HIGH
+                          : SimulationConfig.SLA_PENALTY_LOW;
         return Math.min(1.0, base * overrun);
     }
 
@@ -142,14 +142,19 @@ public class MultiObjectiveScheduler extends BaseScheduler {
     }
 
     /**
-     * IdlePenalty — penalise placing work on a VM whose host is currently idle
-     * (< 5 % utilisation), as that would wake up a sleeping host.
+     * IdlePenalty — penalise slow ECO VMs for CRITICAL tasks,
+     * and penalise FAST VMs for tiny ROUTINE tasks (wasteful).
+     * Uses static MIPS instead of live utilisation (which is 0 at schedule time).
      */
-    private double idlePenalty(Vm vm) {
-        Host host = vm.getHost();
-        if (host == null || host == Host.NULL) return 1.0;
-        double util = host.getCpuPercentUtilization();
-        return util < 0.05 ? 1.0 : 0.0;
+    private double idlePenalty(Cloudlet c, Vm vm) {
+        long mips = (long) vm.getMips();
+        TaskRecord t = task(c);
+        boolean critical = t != null && t.isCritical();
+        // CRITICAL task on ECO VM → high penalty
+        if (critical && mips <= SimulationConfig.VM_ECO_MIPS) return 0.9;
+        // Small ROUTINE task on FAST VM → mild waste penalty
+        if (!critical && mips >= SimulationConfig.VM_FAST_MIPS && c.getLength() < 10_000) return 0.3;
+        return 0.0;
     }
 
     /**
@@ -207,7 +212,10 @@ public class MultiObjectiveScheduler extends BaseScheduler {
         return vm.getExpectedFreePesNumber() >= c.getNumberOfPes();
     }
 
-    private record PowerModelData(double idle, double max) {}
+    private static final class PowerModelData {
+        final double idle, max;
+        PowerModelData(double idle, double max) { this.idle = idle; this.max = max; }
+    }
 
     private PowerModelData powerParams(Host host) {
         long mips = host.getTotalMipsCapacity() > 0

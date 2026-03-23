@@ -36,32 +36,26 @@ public class EnergyAwareScheduler extends BaseScheduler {
                 .toList();
 
         for (Cloudlet c : ordered) {
-            Vm best = selectBestVm(c, vms);
-            c.setVm(best);
+            assign(c, selectBestVm(c, vms));
         }
     }
 
     /**
-     * Pick the VM whose host is most utilised (consolidation) but still has
-     * enough free PEs for the cloudlet.  Falls back to least-loaded if no
-     * host has free capacity.
+     * Pick the VM whose assigned load is highest (bin-packing consolidation).
+     * Among equally loaded VMs prefer those with higher MIPS for CRITICAL tasks.
      */
     private Vm selectBestVm(Cloudlet c, List<Vm> vms) {
-        long requiredPes = c.getNumberOfPes();
+        boolean critical = isCritical(c);
+        int avgLoad = loadCounter.values().stream().mapToInt(i -> i).sum() / Math.max(1, vms.size());
+        int cap = Math.max(avgLoad * 2, 50); // don't pile more than 2x average onto one VM
 
-        // Prefer VMs on hosts that are already active and heavily loaded
+        // Prefer consolidation onto already-loaded VMs, but only up to cap
         return vms.stream()
-                .filter(vm -> vm.getHost() != null
-                           && vm.getHost() != Host.NULL
-                           && vm.getExpectedFreePesNumber() >= requiredPes)
-                .max(Comparator.comparingDouble(vm -> hostUtilisation(vm.getHost())))
-                .orElseGet(() ->
-                    // Fallback: any VM with enough free PEs
-                    vms.stream()
-                       .filter(vm -> vm.getExpectedFreePesNumber() >= requiredPes)
-                       .findFirst()
-                       .orElse(vms.get(0))
-                );
+                .filter(vm -> assignedLoad(vm) <= cap)
+                .max(Comparator
+                        .comparingInt(this::assignedLoad)
+                        .thenComparingDouble((Vm vm) -> critical ? vm.getMips() : -vm.getMips()))
+                .orElse(leastLoaded(vms)); // fallback: least loaded if all over cap
     }
 
     private double hostUtilisation(Host host) {

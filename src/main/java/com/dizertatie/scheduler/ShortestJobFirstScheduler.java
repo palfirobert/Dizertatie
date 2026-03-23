@@ -27,14 +27,7 @@ public class ShortestJobFirstScheduler extends BaseScheduler {
                 .toList();
 
         for (Cloudlet c : sorted) {
-            Vm target = leastLoaded(vms);
-            c.setVm(target);
+            assign(c, leastLoaded(vms));
         }
-    }
-
-    private Vm leastLoaded(List<Vm> vms) {
-        return vms.stream()
-                .min(Comparator.comparingDouble(this::vmUtilisation))
-                .orElse(vms.get(0));
     }
 }

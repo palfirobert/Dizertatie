@@ -20,10 +20,10 @@ public class RoundRobinScheduler extends BaseScheduler {
     @Override
     public void schedule(List<Cloudlet> cloudlets, List<Vm> vms) {
         if (vms.isEmpty()) return;
+        int i = 0;
         for (Cloudlet c : cloudlets) {
-            Vm target = vms.get(index % vms.size());
-            c.setVm(target);
-            index++;
+            assign(c, vms.get(i % vms.size()));
+            i++;
         }
     }
 }

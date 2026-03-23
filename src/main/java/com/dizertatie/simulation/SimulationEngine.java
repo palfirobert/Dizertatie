@@ -86,6 +86,16 @@ public class SimulationEngine {
             scheduler.schedule(runCloudlets, vms);
         }
 
+        // Bind each cloudlet to the VM chosen by the scheduler.
+        // DatacenterBrokerSimple ignores cloudlet.setVm() — bindCloudletToVm() is the
+        // only way to enforce scheduler decisions.
+        for (Cloudlet c : runCloudlets) {
+            Vm assigned = c.getVm();
+            if (assigned != null && assigned != Vm.NULL) {
+                broker.bindCloudletToVm(c, assigned);
+            }
+        }
+
         broker.submitCloudletList(runCloudlets);
 
         List<Host> allHosts = dcList.stream()
