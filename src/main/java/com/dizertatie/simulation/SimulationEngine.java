@@ -1,5 +1,19 @@
 package com.dizertatie.simulation;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
+import org.cloudbus.cloudsim.cloudlets.Cloudlet;
+import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
+import org.cloudbus.cloudsim.core.CloudSim;
+import org.cloudbus.cloudsim.datacenters.Datacenter;
+import org.cloudbus.cloudsim.hosts.Host;
+import org.cloudbus.cloudsim.vms.Vm;
+
 import com.dizertatie.config.SimulationConfig;
 import com.dizertatie.dataset.TaskMapper;
 import com.dizertatie.fault.FailoverHandler;
@@ -10,31 +24,7 @@ import com.dizertatie.metrics.MetricsCollector;
 import com.dizertatie.metrics.SimulationResult;
 import com.dizertatie.scheduler.BaseScheduler;
 import com.dizertatie.scheduler.MultiObjectiveScheduler;
-import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
-import org.cloudbus.cloudsim.cloudlets.Cloudlet;
-import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
-import org.cloudbus.cloudsim.core.CloudSim;
-import org.cloudbus.cloudsim.datacenters.Datacenter;
-import org.cloudbus.cloudsim.hosts.Host;
-import org.cloudbus.cloudsim.vms.Vm;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-/**
- * Core simulation engine.
- * One instance = one run (scheduler × scenario).
- *
- * Lifecycle:
- *  1. Create a fresh CloudSim instance
- *  2. Build datacenters + hosts
- *  3. Create broker + VMs
- *  4. Apply scenario filter to cloudlets
- *  5. Run scheduler to bind cloudlets → VMs
- *  6. Optionally inject faults
- *  7. Start simulation
- *  8. Collect metrics
- */
 public class SimulationEngine {
 
     private final String        scenarioName;
@@ -86,9 +76,6 @@ public class SimulationEngine {
             scheduler.schedule(runCloudlets, vms);
         }
 
-        // Bind each cloudlet to the VM chosen by the scheduler.
-        // DatacenterBrokerSimple ignores cloudlet.setVm() — bindCloudletToVm() is the
-        // only way to enforce scheduler decisions.
         for (Cloudlet c : runCloudlets) {
             Vm assigned = c.getVm();
             if (assigned != null && assigned != Vm.NULL) {
@@ -116,6 +103,25 @@ public class SimulationEngine {
         List<Cloudlet> finished = broker.getCloudletFinishedList();
         System.out.printf("[Engine] Finished cloudlets: %d / %d%n",
                 finished.size(), runCloudlets.size());
+
+        // runCloudlets has correct VM assignments but broker finished list
+        // may have VM=NULL (especially MultiObjective uses bindCloudletToVm which
+        // does not backfill the VM ref on the cloudlet object after execution).
+        // Fix: match by (length + submissionDelay) since IDs differ after shallowCopy.
+        Map<String, Vm> vmBySignature = new HashMap<>();
+        for (Cloudlet c : runCloudlets) {
+            if (c.getVm() != null && c.getVm() != Vm.NULL) {
+                String key = c.getLength() + "_" + c.getSubmissionDelay();
+                vmBySignature.put(key, c.getVm());
+            }
+        }
+        for (Cloudlet c : finished) {
+            if (c.getVm() == null || c.getVm() == Vm.NULL) {
+                String key = c.getLength() + "_" + c.getSubmissionDelay();
+                Vm assignedVm = vmBySignature.get(key);
+                if (assignedVm != null) c.setVm(assignedVm);
+            }
+        }
 
         SimulationResult result = new MetricsCollector().collect(
                 scheduler.getName(), scenarioName,

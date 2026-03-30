@@ -1,10 +1,14 @@
 package com.dizertatie.metrics;
 
-import com.dizertatie.config.SimulationConfig;
-
-import java.io.*;
-import java.nio.file.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+
+import com.dizertatie.config.SimulationConfig;
 
 /**
  * Stage 8 — Results Exporter.
@@ -51,7 +55,7 @@ public class ResultsExporter {
                     r.getMakespan(), r.getThroughput(),
                     r.getSlaViolations(), r.getSlaViolationRate() * 100.0,
                     r.getTotalEnergyKWh(), r.getEnergyPerTask(),
-                    r.getAvgCpuUtilisation() * 100.0,
+                    r.getAvgCpuUtilisation(),
                     r.getFailedHosts(), r.getRecoveredCloudlets(), r.getRecoveryTimeSec());
             }
             System.out.println("[ResultsExporter] Written: " + file);
@@ -71,7 +75,7 @@ public class ResultsExporter {
                 pw.printf("%s,%s,%.6f,%.4f,%d,%.4f%n",
                     r.getSchedulerName(), r.getScenarioName(),
                     r.getTotalEnergyKWh(), r.getEnergyPerTask(),
-                    r.getCompletedTasks(), r.getAvgCpuUtilisation() * 100.0);
+                    r.getCompletedTasks(), r.getAvgCpuUtilisation());
             }
             System.out.println("[ResultsExporter] Written: " + file);
         } catch (IOException e) {

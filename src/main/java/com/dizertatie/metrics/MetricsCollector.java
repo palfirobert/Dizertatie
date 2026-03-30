@@ -11,25 +11,12 @@ import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
 import org.cloudbus.cloudsim.vms.Vm;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * Stage 8 — Metrics Collector.
- * Aggregates all simulation output into a {@link SimulationResult}.
- */
 public class MetricsCollector {
 
-    /**
-     * Compute all metrics after the simulation has finished.
-     *
-     * @param schedulerName  name of the scheduler used
-     * @param scenarioName   name of the scenario
-     * @param finishedCls    cloudlets returned by the broker (finished + failed)
-     * @param allVms         all VMs in the simulation
-     * @param datacenters    all datacenters (for energy)
-     * @param faultInjector  may be null if no faults were injected
-     * @param failoverHandler may be null if no failover occurred
-     */
     public SimulationResult collect(
             String schedulerName,
             String scenarioName,
@@ -39,20 +26,17 @@ public class MetricsCollector {
             FaultInjector faultInjector,
             FailoverHandler failoverHandler) {
 
-        // ── Task counts ───────────────────────────────────────────────────────
         int total     = finishedCls.size();
         int completed = (int) finishedCls.stream()
                 .filter(c -> c.getStatus() == Cloudlet.Status.SUCCESS).count();
         int failed    = total - completed;
 
-        // ── Makespan / throughput ─────────────────────────────────────────────
         double makespan = finishedCls.stream()
                 .filter(c -> c.getStatus() == Cloudlet.Status.SUCCESS)
                 .mapToDouble(Cloudlet::getFinishTime)
                 .max().orElse(0.0);
         double throughput = makespan > 0 ? (double) completed / makespan : 0.0;
 
-        // ── SLA violations ────────────────────────────────────────────────────
         int slaVio = 0;
         for (Cloudlet c : finishedCls) {
             if (c.getStatus() != Cloudlet.Status.SUCCESS) continue;
@@ -62,28 +46,20 @@ public class MetricsCollector {
         }
         double slaRate = total > 0 ? (double) slaVio / total : 0.0;
 
-        // ── Energy ────────────────────────────────────────────────────────────
         double totalWh = 0.0;
         for (Datacenter dc : datacenters) {
             for (Host host : dc.getHostList()) {
                 totalWh += accumulatedWh(host);
             }
         }
-        double totalKWh     = totalWh / 1000.0;
+        double totalKWh      = totalWh / 1000.0;
         double energyPerTask = completed > 0 ? totalWh / completed : 0.0;
 
-        // ── CPU utilisation ───────────────────────────────────────────────────
-        // getCpuPercentUtilization() is instantaneous — always 0 after sim ends.
-        // Instead compute a time-weighted average from host state history.
-        double avgCpu = datacenters.stream()
-                .flatMap(dc -> dc.getHostList().stream())
-                .mapToDouble(this::timeWeightedCpuUtil)
-                .average().orElse(0.0);
+        double avgCpu = computeAvgCpuUtilisation(finishedCls, allVms, makespan);
 
-        // ── Fault / failover ──────────────────────────────────────────────────
-        int    failedHosts     = faultInjector  != null ? faultInjector.getFailedHosts().size() : 0;
-        int    recovered       = failoverHandler != null ? failoverHandler.getRecoveredCount()   : 0;
-        double recoveryTime    = failoverHandler != null ? failoverHandler.getRecoveryTime()      : 0.0;
+        int    failedHosts  = faultInjector  != null ? faultInjector.getFailedHosts().size() : 0;
+        int    recovered    = failoverHandler != null ? failoverHandler.getRecoveredCount()   : 0;
+        double recoveryTime = failoverHandler != null ? failoverHandler.getRecoveryTime()      : 0.0;
 
         return new SimulationResult(
                 schedulerName, scenarioName,
@@ -95,58 +71,60 @@ public class MetricsCollector {
                 failedHosts, recovered, recoveryTime);
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     /**
-     * Accumulate host energy (Wh) from the host's state history.
-     * Each history entry stores CPU utilisation over a time interval;
-     * we integrate using the trapezoidal rule and the host's power model.
+     * Average CPU utilisation per VM (0-100%).
+     *
+     * For each VM we compute the wall-clock busy span:
+     *   busySpan = lastCloudletFinish - firstCloudletStart
+     * util = min(1.0, busySpan / makespan)
+     *
+     * Averaged across ALL VMs so idle VMs pull the average down.
+     * This reflects how differently each scheduler packs work onto VMs.
      */
+    private double computeAvgCpuUtilisation(List<Cloudlet> cloudlets, List<Vm> allVms, double makespan) {
+        if (allVms.isEmpty() || makespan <= 0) return 0.0;
+
+        // Track [firstStart, lastFinish] per VM
+        Map<Long, double[]> vmSpan = new HashMap<>();
+        for (Cloudlet c : cloudlets) {
+            if (c.getStatus() != Cloudlet.Status.SUCCESS) continue;
+            Vm vm = c.getVm();
+            if (vm == null || vm == Vm.NULL) continue;
+            double start  = c.getExecStartTime();
+            double finish = c.getFinishTime();
+            if (finish <= 0) continue;
+            vmSpan.compute(vm.getId(), (k, v) -> {
+                if (v == null) return new double[]{start, finish};
+                return new double[]{Math.min(v[0], start), Math.max(v[1], finish)};
+            });
+        }
+
+        double totalUtil = 0.0;
+        for (double[] span : vmSpan.values()) {
+            double busySpan = span[1] - span[0];
+            totalUtil += Math.min(1.0, busySpan / makespan);
+        }
+
+        // Divide by ALL VMs — idle VMs contribute 0
+        return (totalUtil / allVms.size()) * 100.0;
+    }
+
     private double accumulatedWh(Host host) {
         List<HostStateHistoryEntry> history = host.getStateHistory();
         if (history == null || history.isEmpty()) return 0.0;
-
         double totalJoules = 0.0;
         var pm = host.getPowerModel();
-
         for (int i = 1; i < history.size(); i++) {
             HostStateHistoryEntry prev = history.get(i - 1);
             HostStateHistoryEntry curr = history.get(i);
-            double dt     = curr.time() - prev.time();   // seconds
+            double dt = curr.time() - prev.time();
             if (dt <= 0) continue;
             double totalMips = host.getTotalMipsCapacity();
             double util = totalMips > 0
                     ? Math.min(1.0, (prev.requestedMips() + curr.requestedMips()) / 2.0 / totalMips)
                     : 0.0;
-            try {
-                totalJoules += pm.getPower(util) * dt;
-            } catch (Exception ignored) {}
+            try { totalJoules += pm.getPower(util) * dt; } catch (Exception ignored) {}
         }
-        return totalJoules / 3_600.0; // J → Wh
-    }
-
-    /**
-     * Compute time-weighted CPU utilisation from host state history.
-     */
-    private double timeWeightedCpuUtil(Host host) {
-        List<HostStateHistoryEntry> history = host.getStateHistory();
-        if (history == null || history.isEmpty()) return 0.0;
-
-        double totalUtil = 0.0;
-        double totalTime = 0.0;
-
-        for (int i = 1; i < history.size(); i++) {
-            HostStateHistoryEntry prev = history.get(i - 1);
-            HostStateHistoryEntry curr = history.get(i);
-            double dt = curr.time() - prev.time(); // seconds
-            if (dt <= 0) continue;
-            double totalMips = host.getTotalMipsCapacity();
-            double util = totalMips > 0
-                    ? Math.min(1.0, (prev.requestedMips() + curr.requestedMips()) / 2.0 / totalMips)
-                    : 0.0;
-            totalUtil += util * dt;
-            totalTime += dt;
-        }
-        return totalTime > 0 ? totalUtil / totalTime : 0.0;
+        return totalJoules / 3_600.0;
     }
 }
