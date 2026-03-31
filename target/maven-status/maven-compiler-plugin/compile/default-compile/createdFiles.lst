@@ -15,7 +15,6 @@ com\dizertatie\infrastructure\VmFactory.class
 com\dizertatie\simulation\ExperimentLauncher.class
 com\dizertatie\simulation\ScenarioFilter.class
 com\dizertatie\infrastructure\PowerModelFactory.class
-com\dizertatie\scheduler\MultiObjectiveScheduler$PowerModelData.class
 com\dizertatie\simulation\SimulationEngine.class
 com\dizertatie\infrastructure\HostFactory.class
 com\dizertatie\scheduler\MultiObjectiveScheduler.class

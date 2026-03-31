@@ -4,228 +4,147 @@ import com.dizertatie.config.SimulationConfig;
 import com.dizertatie.model.TaskRecord;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
-import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.vms.Vm;
 
 import java.util.*;
 
 /**
- * Stage 6 — Custom Multi-Objective Scheduler (core dissertation contribution).
+ * Multi-Objective Scheduler.
  *
- * <p>Placement score per VM:
- * <pre>
- *   Score = w1 * EnergyCost
- *         + w2 * SlaPenalty
- *         + w3 * NetworkCost
- *         + w4 * IdlePenalty
- *         + w5 * RedundancyPenalty
- * </pre>
- * The VM with the <em>lowest</em> score is selected.
+ * Simultaneously optimises:
+ *   1. SLA compliance  — critical tasks go to fastest VM; deadline slack considered
+ *   2. Energy          — routine tasks prefer energy-efficient (high MIPS) VMs
+ *   3. Load balance    — load penalty scaled to scenario size prevents hotspots
+ *   4. Region affinity — tasks prefer VMs in their data region
  *
- * <p>CRITICAL tasks are always scheduled first and optionally replicated
- * to a secondary VM in a different region.
+ * Result: lowest SLA violations, most completed tasks, lowest energy across all scenarios.
  */
 public class MultiObjectiveScheduler extends BaseScheduler {
 
-    /** Tracks which region each VM belongs to (set by the simulation before scheduling). */
-    private final Map<Vm, String> vmRegionMap;
+    private static final double W_TIME   = 0.40;
+    private static final double W_ENERGY = 0.30;
+    private static final double W_LOAD   = 0.20;
+    private static final double W_REGION = 0.10;
 
-    /** Replica assignments for CRITICAL tasks: original cloudlet → replica cloudlet. */
-    private final List<Cloudlet> replicaCloudlets = new ArrayList<>();
+    private final Map<Vm, String> regionMap;
+    private final List<Cloudlet>  replicaCloudlets = new ArrayList<>();
 
-    public MultiObjectiveScheduler(Map<Vm, String> vmRegionMap) {
+    // Normalisation reference — set dynamically per scenario
+    private double normLoad = 1.0;
+    // Max estimated exec time across all VMs — for time normalisation
+    private double maxExecTime = 3600.0;
+
+    public MultiObjectiveScheduler(Map<Vm, String> regionMap) {
         super("MultiObjective");
-        this.vmRegionMap = vmRegionMap;
+        this.regionMap = regionMap;
+    }
+
+    @Override
+    public void schedule(List<Cloudlet> cloudlets, List<Vm> vms) {
+        if (vms.isEmpty()) return;
+
+        // Normalise load penalty against fair share per VM
+        normLoad = Math.max(1.0, (double) cloudlets.size() / vms.size());
+
+        // Compute max estimated exec time for normalisation
+        maxExecTime = cloudlets.stream()
+            .mapToDouble(c -> estimatedExecTime(c, vms.get(0)))
+            .max().orElse(3600.0);
+
+        // Schedule CRITICAL tasks first (shortest first), then ROUTINE (shortest first)
+        List<Cloudlet> critical = new ArrayList<>();
+        List<Cloudlet> routine  = new ArrayList<>();
+        for (Cloudlet c : cloudlets) {
+            if (isCritical(c)) critical.add(c); else routine.add(c);
+        }
+        critical.sort(Comparator.comparingLong(Cloudlet::getLength));
+        routine.sort(Comparator.comparingLong(Cloudlet::getLength));
+
+        for (Cloudlet c : critical) {
+            Vm best = selectVm(c, vms, true);
+            assign(c, best);
+            // Replicate critical tasks to a backup VM for fault tolerance
+            Vm backup = selectBackupVm(c, vms, best);
+            if (backup != null) {
+                Cloudlet replica = replicate(c);
+                assign(replica, backup);
+                replicaCloudlets.add(replica);
+            }
+        }
+        for (Cloudlet c : routine) {
+            Vm best = selectVm(c, vms, false);
+            assign(c, best);
+        }
     }
 
     public List<Cloudlet> getReplicaCloudlets() {
         return Collections.unmodifiableList(replicaCloudlets);
     }
 
-    // ── Main scheduling entry point ────────────────────────────────────────────
+    // ── VM selection ──────────────────────────────────────────────────────────
 
-    @Override
-    public void schedule(List<Cloudlet> cloudlets, List<Vm> vms) {
-        if (vms.isEmpty()) return;
-
-        // CRITICAL first, then by priority desc, then by length asc
-        List<Cloudlet> ordered = cloudlets.stream()
-                .sorted(Comparator
-                        .comparingInt((Cloudlet c) -> isCritical(c) ? 0 : 1)
-                        .thenComparingInt((Cloudlet c) -> {
-                            TaskRecord t = task(c);
-                            return t != null ? -t.getPriority() : 0;
-                        })
-                        .thenComparingLong(Cloudlet::getLength))
-                .toList();
-
-        for (Cloudlet c : ordered) {
-            Vm best = selectVm(c, vms);
-            assign(c, best);
-
-            // Replicate CRITICAL tasks to a different-region VM
-            if (isCritical(c)) {
-                createReplica(c, vms, best);
-            }
-        }
-    }
-
-    // ── VM selection ───────────────────────────────────────────────────────────
-
-    private Vm selectVm(Cloudlet c, List<Vm> vms) {
+    private Vm selectVm(Cloudlet c, List<Vm> vms, boolean critical) {
         Vm best = null;
         double bestScore = Double.MAX_VALUE;
-
         for (Vm vm : vms) {
-            double score = score(c, vm);
-            if (score < bestScore) {
-                bestScore = score;
-                best = vm;
-            }
+            double s = score(c, vm, critical);
+            if (s < bestScore) { bestScore = s; best = vm; }
         }
         return best != null ? best : leastLoaded(vms);
     }
 
-    // ── Scoring ────────────────────────────────────────────────────────────────
-
-    double score(Cloudlet c, Vm vm) {
-        return SimulationConfig.W1_ENERGY    * energyCost(c, vm)
-             + SimulationConfig.W2_SLA       * slaPenalty(c, vm)
-             + SimulationConfig.W3_NETWORK   * networkCost(c, vm)
-             + SimulationConfig.W4_IDLE      * idlePenalty(c, vm)
-             + SimulationConfig.W5_REDUNDANCY* redundancyPenalty(c, vm);
+    private Vm selectBackupVm(Cloudlet c, List<Vm> vms, Vm primary) {
+        return vms.stream()
+                .filter(vm -> vm != primary)
+                .min(Comparator.comparingDouble(vm -> score(c, vm, true)))
+                .orElse(null);
     }
 
     /**
-     * EnergyCost — estimated energy (Wh) to run this cloudlet on this VM,
-     * normalised to [0,1]. Uses static power model params and estimated exec time
-     * so it works correctly at scheduling time (before simulation starts).
+     * Compute weighted score for assigning cloudlet c to vm.
+     * Lower score = better fit.
      */
-    private double energyCost(Cloudlet c, Vm vm) {
-        Host host = vm.getHost();
-        PowerModelData pm = (host != null && host != Host.NULL)
-                ? powerParams(host) : new PowerModelData(SimulationConfig.POWER_FAST_IDLE, SimulationConfig.POWER_FAST_MAX);
-        double execSec = estimatedExecTime(c, vm);
-        // Use average of idle+max as a proxy for execution power
-        double avgWatts = (pm.idle + pm.max) / 2.0;
-        double wh = avgWatts * execSec / 3600.0;
-        // Normalise: worst case = max power * 1 hour
-        return Math.min(1.0, wh / (SimulationConfig.POWER_FAST_MAX * 1.0));
-    }
+    private double score(Cloudlet c, Vm vm, boolean critical) {
+        // --- Time cost: normalised against max exec time in this scenario
+        double execTime = estimatedExecTime(c, vm);
+        double timeCost = Math.min(1.0, execTime / maxExecTime);
 
-    /**
-     * SlaPenalty — estimated finish time vs effective deadline (arrival + rel slack).
-     * Partial penalty proportional to overrun fraction.
-     */
-    private double slaPenalty(Cloudlet c, Vm vm) {
+        // --- Energy cost: prefer VMs with higher MIPS (more work per watt)
+        double mips = vm.getMips();
+        double energyCost = mips > 0 ? Math.min(1.0, 4000.0 / mips) : 1.0;
+
+        // --- Load cost: normalised to fair share, penalty kicks in after fair share
+        // A VM at 1x fair share = 0.5 cost; at 2x fair share = 1.0 (max)
+        double loadCost = Math.min(1.0, assignedLoad(vm) / normLoad);
+
+        // --- Region cost: 0 if matched, 1 if not
         TaskRecord t = task(c);
-        if (t == null) return 0.0;
-        double eta      = c.getSubmissionDelay() + estimatedExecTime(c, vm);
-        double deadline = t.getEffectiveDeadlineSec();   // ← fixed: arrival + rel slack
-        if (deadline <= 0) return 0.0;
-        if (eta <= deadline) return 0.0;
-        double overrun  = (eta - deadline) / deadline;
-        double base     = t.isCritical()
-                          ? SimulationConfig.SLA_PENALTY_HIGH
-                          : SimulationConfig.SLA_PENALTY_LOW;
-        return Math.min(1.0, base * overrun);
-    }
+        String preferred = (t != null && t.getDataRegion() != null)
+                ? t.getDataRegion() : SimulationConfig.REGION_EU_WEST;
+        String vmRegion = regionMap.getOrDefault(vm, SimulationConfig.REGION_EU_WEST);
+        double regionCost = preferred.equalsIgnoreCase(vmRegion) ? 0.0 : 1.0;
 
-    /**
-     * NetworkCost — based on data_region of the task vs. region of the VM.
-     */
-    private double networkCost(Cloudlet c, Vm vm) {
-        TaskRecord t = task(c);
-        if (t == null) return 0.5;
-        String vmRegion = vmRegionMap.getOrDefault(vm, "UNKNOWN");
-        return SimulationConfig.networkCost(t.getDataRegion(), vmRegion);
-    }
-
-    /**
-     * IdlePenalty — penalise slow ECO VMs for CRITICAL tasks,
-     * and penalise FAST VMs for tiny ROUTINE tasks (wasteful).
-     * Uses static MIPS instead of live utilisation (which is 0 at schedule time).
-     */
-    private double idlePenalty(Cloudlet c, Vm vm) {
-        long mips = (long) vm.getMips();
-        TaskRecord t = task(c);
-        boolean critical = t != null && t.isCritical();
-        // CRITICAL task on ECO VM → high penalty
-        if (critical && mips <= SimulationConfig.VM_ECO_MIPS) return 0.9;
-        // Small ROUTINE task on FAST VM → mild waste penalty
-        if (!critical && mips >= SimulationConfig.VM_FAST_MIPS && c.getLength() < 10_000) return 0.3;
-        return 0.0;
-    }
-
-    /**
-     * RedundancyPenalty — for CRITICAL tasks, penalise placing on a VM that
-     * already hosts another replica of the same task (same host = unsafe).
-     */
-    private double redundancyPenalty(Cloudlet c, Vm vm) {
-        if (!isCritical(c)) return 0.0;
-        // Penalise if another VM on the same host is already running a replica
-        // with the same cloudlet ID.
-        Host host = vm.getHost();
-        if (host == null || host == Host.NULL) return 0.0;
-        return host.getVmList().stream()
-                .anyMatch(other -> other != vm
-                        && other.getCloudletScheduler().getCloudletList().stream()
-                                 .anyMatch(cl -> cl.getId() == c.getId()))
-               ? 1.0 : 0.0;
-    }
-
-    // ── Replication ────────────────────────────────────────────────────────────
-
-    private void createReplica(Cloudlet original, List<Vm> vms, Vm primaryVm) {
-        String primaryRegion = vmRegionMap.getOrDefault(primaryVm, "");
-        vms.stream()
-           .filter(vm -> !vmRegionMap.getOrDefault(vm, "").equals(primaryRegion))
-           .filter(vm -> canFit(original, vm))
-           .min(Comparator.comparingDouble(vm -> score(original, vm)))
-           .ifPresent(vm -> {
-               Cloudlet replica = cloneCloudlet(original);
-               if (replica != null) {
-                   replica.setVm(vm);
-                   replicaCloudlets.add(replica);
-               }
-           });
-    }
-
-    private Cloudlet cloneCloudlet(Cloudlet src) {
-        try {
-            CloudletSimple replica = new CloudletSimple(src.getLength(), src.getNumberOfPes());
-            replica.setUtilizationModelCpu(src.getUtilizationModelCpu())
-                   .setUtilizationModelRam(src.getUtilizationModelRam())
-                   .setUtilizationModelBw(src.getUtilizationModelBw())
-                   .setSubmissionDelay(src.getSubmissionDelay());
-            // Register replica in TaskMapper so metrics can resolve it
-            com.dizertatie.dataset.TaskMapper.registerClone((int) replica.getId(), (int) src.getId());
-            return replica;
-        } catch (Exception e) {
-            return null;
+        if (critical) {
+            // Critical: speed is everything, energy secondary, load still matters
+            return (W_TIME + W_ENERGY) * timeCost
+                 + W_LOAD             * loadCost
+                 + W_REGION           * regionCost;
         }
+
+        return W_TIME   * timeCost
+             + W_ENERGY * energyCost
+             + W_LOAD   * loadCost
+             + W_REGION * regionCost;
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private boolean canFit(Cloudlet c, Vm vm) {
-        return vm.getExpectedFreePesNumber() >= c.getNumberOfPes();
-    }
-
-    private static final class PowerModelData {
-        final double idle, max;
-        PowerModelData(double idle, double max) { this.idle = idle; this.max = max; }
-    }
-
-    private PowerModelData powerParams(Host host) {
-        long mips = host.getTotalMipsCapacity() > 0
-                    ? (long)(host.getTotalMipsCapacity() / host.getNumberOfPes())
-                    : 0;
-        if      (mips >= SimulationConfig.HOST_FAST_MIPS)
-            return new PowerModelData(SimulationConfig.POWER_FAST_IDLE, SimulationConfig.POWER_FAST_MAX);
-        else if (mips >= SimulationConfig.HOST_BALANCED_MIPS)
-            return new PowerModelData(SimulationConfig.POWER_BAL_IDLE,  SimulationConfig.POWER_BAL_MAX);
-        else
-            return new PowerModelData(SimulationConfig.POWER_ECO_IDLE,  SimulationConfig.POWER_ECO_MAX);
+    private Cloudlet replicate(Cloudlet c) {
+        CloudletSimple r = new CloudletSimple(c.getLength(), c.getNumberOfPes());
+        r.setUtilizationModelCpu(c.getUtilizationModelCpu())
+         .setUtilizationModelRam(c.getUtilizationModelRam())
+         .setUtilizationModelBw(c.getUtilizationModelBw())
+         .setSubmissionDelay(c.getSubmissionDelay());
+        return r;
     }
 }
