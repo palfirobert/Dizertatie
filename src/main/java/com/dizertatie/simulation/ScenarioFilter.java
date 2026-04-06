@@ -1,12 +1,13 @@
 package com.dizertatie.simulation;
 
-import com.dizertatie.model.TaskRecord;
-import com.dizertatie.dataset.TaskMapper;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.dizertatie.dataset.TaskMapper;
+import com.dizertatie.model.TaskRecord;
 
 public final class ScenarioFilter {
 

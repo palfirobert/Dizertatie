@@ -1,16 +1,16 @@
 package com.dizertatie.metrics;
 
-import com.dizertatie.dataset.TaskMapper;
-import com.dizertatie.model.TaskRecord;
-import org.cloudbus.cloudsim.cloudlets.Cloudlet;
-import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.Collections;
 import java.util.List;
 
+import org.cloudbus.cloudsim.cloudlets.Cloudlet;
+import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.dizertatie.dataset.TaskMapper;
+import com.dizertatie.model.TaskRecord;
 
 public class MetricsCollectorTest {
 

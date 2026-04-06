@@ -1,9 +1,12 @@
 package com.dizertatie.metrics;
 
-import com.dizertatie.dataset.TaskMapper;
-import com.dizertatie.fault.FailoverHandler;
-import com.dizertatie.fault.FaultInjector;
-import com.dizertatie.model.TaskRecord;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.hosts.Host;
@@ -11,12 +14,10 @@ import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
 import org.cloudbus.cloudsim.power.models.PowerModelHostSimple;
 import org.cloudbus.cloudsim.vms.Vm;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.dizertatie.dataset.TaskMapper;
+import com.dizertatie.fault.FailoverHandler;
+import com.dizertatie.fault.FaultInjector;
+import com.dizertatie.model.TaskRecord;
 
 public class MetricsCollector {
 

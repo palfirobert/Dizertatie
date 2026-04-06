@@ -1,16 +1,16 @@
 package com.dizertatie.simulation;
 
-import com.dizertatie.dataset.TaskMapper;
-import com.dizertatie.model.TaskRecord;
-import org.cloudbus.cloudsim.cloudlets.Cloudlet;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.dizertatie.dataset.TaskMapper;
+import com.dizertatie.model.TaskRecord;
 
 public class ScenarioFilterTest {
 
