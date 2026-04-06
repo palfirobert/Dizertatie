@@ -26,7 +26,7 @@ public class SimulationResult {
     private final double energyPerTask;     // Wh / task
 
     // ── Utilisation ───────────────────────────────────────────────────────────
-    private final double avgCpuUtilisation; // 0.0 – 1.0
+    private final double avgCpuUtilisation; // 0.0 – 100.0
 
     // ── Fault / Failover ──────────────────────────────────────────────────────
     private final int    failedHosts;

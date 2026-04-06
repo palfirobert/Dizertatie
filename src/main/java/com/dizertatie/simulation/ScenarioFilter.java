@@ -3,7 +3,9 @@ package com.dizertatie.simulation;
 import com.dizertatie.model.TaskRecord;
 import com.dizertatie.dataset.TaskMapper;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
+import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class ScenarioFilter {
@@ -16,7 +18,7 @@ public final class ScenarioFilter {
     private ScenarioFilter() {}
 
     public static List<Cloudlet> filter(List<Cloudlet> all, double windowStart, double windowEnd) {
-        return all.stream()
+        return copyCloudlets(all).stream()
                 .filter(c -> c.getSubmissionDelay() >= windowStart && c.getSubmissionDelay() <= windowEnd)
                 .toList();
     }
@@ -43,7 +45,7 @@ public final class ScenarioFilter {
     }
 
     public static List<Cloudlet> mixedDaily(List<Cloudlet> all) {
-        return all;
+        return copyCloudlets(all);
     }
 
     public static List<Cloudlet> faultScenario(List<Cloudlet> all) {
@@ -51,7 +53,7 @@ public final class ScenarioFilter {
     }
 
     public static List<Cloudlet> energyFlexibility(List<Cloudlet> all) {
-        return all.stream().map(c -> {
+        return copyCloudlets(all).stream().map(c -> {
             TaskRecord t = TaskMapper.getTask(c);
             if (t != null && !t.isCritical() && t.getDataSizeMb() >= 500.0) {
                 double newDelay = Math.max(c.getSubmissionDelay(), EVENING_START);
@@ -59,5 +61,19 @@ public final class ScenarioFilter {
             }
             return c;
         }).toList();
+    }
+
+    private static List<Cloudlet> copyCloudlets(List<Cloudlet> source) {
+        List<Cloudlet> copy = new ArrayList<>(source.size());
+        for (Cloudlet c : source) {
+            CloudletSimple nc = new CloudletSimple(c.getLength(), c.getNumberOfPes());
+            nc.setUtilizationModelCpu(c.getUtilizationModelCpu())
+              .setUtilizationModelRam(c.getUtilizationModelRam())
+              .setUtilizationModelBw(c.getUtilizationModelBw())
+              .setSubmissionDelay(c.getSubmissionDelay());
+            TaskMapper.registerClone((int) nc.getId(), (int) c.getId());
+            copy.add(nc);
+        }
+        return copy;
     }
 }

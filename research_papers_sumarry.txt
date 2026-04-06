@@ -1,0 +1,341 @@
+Raport disertatie Palfi Robert
+
+1.	Energy-aware resource management in cloud computing considering load balance
+The paper, "Energy-Aware Resource Management in Cloud Computing Considering Load Balance," addresses the growing energy consumption and operational costs associated with
+cloud computing infrastructure. The authors propose a multi-objective optimization model for resource management that focuses on minimizing the number of active physical servers and
+balancing workloads across them. This is achieved by considering both energy efficiency and load balancing simultaneously, which many previous studies overlooked.
+To tackle the problem, the authors developed a heuristic-based algorithm called the Greedy- Based Load Balance (GBLB). The algorithm operates in two phases:
+1.	High-Utilization Adjustment: Reduces server utilization below a predefined upper threshold by migrating selected virtual machines (VMs).
+2.	Low-Utilization Consolidation: Consolidates VMs on under-utilized servers and powers down idle servers to save energy.
+The GBLB algorithm is evaluated against three existing methods:
+•	Dynamic Consolidation with Migration Control (DCMC),
+•	Double-Threshold VM Selection (DTVS),
+•	Optimal VM Placement (OVMP).
+The evaluations were performed using both synthetic workloads and real-world data (Google cluster-usage traces). Metrics such as the number of active servers, number of migrations, load
+balance standard deviation (LB_std), and average CPU utilization were used for comparison. The results demonstrated that GBLB achieved the best load balancing and minimized the number of active servers, albeit with slightly higher VM migration costs compared to DTVS.
+The authors emphasize that reducing active servers is prioritized over minimizing migrations due to the significant energy savings achieved. The paper concludes that the proposed GBLB
+algorithm provides a practical solution for energy-aware resource management. However, it acknowledges limitations, such as assuming constant VM resource demands, and suggests future research to address variable demands and multi-core server scenarios.
+ 
+2.	Energy-Effcient Scheduling of HPC Applications in Cloud Computing Environments
+The paper titled "Energy-Efficient Scheduling of HPC Applications in Cloud Computing Environments" tackles the critical issue of high energy consumption in cloud computing,
+particularly for High-Performance Computing (HPC) applications. The study emphasizes the need for energy-efficient solutions to address rising operational costs and environmental
+concerns caused by carbon emissions. It introduces a novel approach to scheduling HPC
+workloads across geographically distributed data centers, focusing on both economic (profit) and environmental (carbon emissions) sustainability.
+A mathematical model is proposed to optimize energy usage by considering factors like energy costs, CO2 emission rates, workload characteristics, and CPU power efficiency. The authors
+present meta-scheduling policies, including Dynamic Voltage Scaling (DVS), to dynamically adjust CPU operating frequencies and achieve energy savings. Policies like Greedy Minimum Carbon Emission (GMCE) and Minimum Carbon Emission with Maximum Profit (MCE-MP) are designed to either minimize carbon emissions or maximize profits, depending on the cloud provider's objectives.
+The evaluation uses real-world HPC workload traces and demonstrates that the proposed policies can save up to 30% energy compared to profit-based methods. By leveraging the heterogeneity of data centers (e.g., varying energy costs and emission rates across locations), the model ensures efficient workload distribution while meeting application deadlines. The study also highlights
+trade-offs, showing that energy-efficient scheduling reduces carbon emissions with negligible impact on profitability.
+In conclusion, the research provides a scalable and practical framework for cloud providers to
+enhance energy sustainability while maintaining service quality. Future work includes expanding the model to support multi-core systems and variable workloads to address evolving industry
+needs.
+ 
+3.	Power Efficient and Workload Aware Scheduling in Cloud
+The paper explores efficient resource management strategies in cloud computing, focusing on power efficiency and workload-aware scheduling. It emphasizes the dual goals of minimizing energy consumption and optimizing workload distribution to maintain Quality of Service (QoS) without violating Service Level Agreements (SLAs). Cloud computing’s growing demand
+necessitates effective scheduling techniques that balance user requirements with operational efficiency.
+The study categorizes resource management into resource provisioning (identifying appropriate resources for workloads) and resource scheduling (allocating these resources to tasks). Key stages of resource scheduling include resource mapping, execution, and monitoring. The paper
+highlights the challenge of uncertainty in workload demands, which traditional methods often fail to address.
+The research reviews existing scheduling approaches, such as clustering-based methods, auto- scaling mechanisms, and energy-efficient frameworks like Brownout-enabled systems. It
+introduces innovative scheduling strategies that optimize resource usage while reducing power consumption, such as the use of dynamic provisioning agents and heuristic algorithms.
+Power efficiency in cloud environments is also discussed, with a review of techniques like
+Dynamic Voltage Scaling (DVS) and hybrid resource allocation. These approaches aim to reduce operational costs and carbon footprints. Case studies and simulations demonstrate that
+integrating workload-aware scheduling with power efficiency can significantly enhance system performance and reduce resource wastage.
+The paper concludes by identifying future research directions, including exploring advanced optimization algorithms, addressing multi-cloud environments, and enhancing real-time
+monitoring systems for workload and energy efficiency.
+ 
+4.	Performance and Energy-Aware Bi-objective Tasks Scheduling for Cloud Data Centers
+The paper addresses the rising energy consumption and environmental impact of cloud data centers driven by increasing demand for cloud services, particularly in smart cities and IoT applications. It highlights that data centers could account for up to 4.5% of global energy
+consumption by 2025, necessitating energy-efficient solutions to reduce both costs and carbon emissions.
+The research proposes a bi-objective optimization model for task scheduling in cloud data
+centers. The model focuses on minimizing both task execution time and energy consumption by using an evolutionary algorithm. It incorporates the Locally Corrected Multiple Linear
+Regression (LC-MLR) power model to accurately predict energy consumption based on resource utilization, including CPU, memory, disk, and network metrics. This contrasts with prior methods that considered only CPU and memory usage, offering a more comprehensive approach.
+An intelligent autonomous agent is designed to manage task scheduling, utilizing a utility-based approach to handle conflicting objectives. Tasks are mapped to virtual machines (VMs) based on their resource requirements and service constraints, ensuring efficient workload distribution. The initial population for the evolutionary algorithm is generated using a Modified Worst Fit
+Decreasing (MWFD) heuristic, which optimizes power usage by assigning tasks to the VMs where the increase in energy consumption is minimal.
+The proposed model is evaluated using CloudSim, a cloud simulation tool, and compared with existing genetic algorithm-based methods. Results demonstrate significant energy savings and
+reduced execution times. The GA_LC-MLR algorithm achieves lower energy consumption and a 0.5-second reduction in mean execution time compared to traditional approaches, emphasizing its effectiveness in balancing performance and energy efficiency.
+The study concludes that the bi-objective model offers a scalable solution for cloud providers to optimize task scheduling while mitigating environmental impacts. Future work involves
+extending the approach to dynamic and heterogeneous environments for improved adaptability.
+ 
+5.	Energy and Network Aware Workload Management for Geographically Distributed Data Centers
+The paper addresses the challenges of managing workloads in geo-distributed cloud data centers while minimizing energy and network costs. With the increasing deployment of geographically distributed data centers, cloud providers aim to leverage time-of-use (TOU) electricity pricing,
+renewable energy sources, and net metering to optimize operations. However, workload
+distribution across multiple data centers incurs significant network costs, queueing delays, and operational heterogeneity.
+The authors propose a novel game-theoretic framework called Nash equilibrium-based
+Intelligent Load Distribution (NILD), which optimizes workload assignment to minimize the combined cost of energy, network transfers, and delays. Unlike prior methods, this framework simultaneously considers factors such as data center compute capacity, cooling power, task co- location interference, and dynamic pricing models. The approach also models renewable energy utilization and net metering, allowing cloud operators to sell excess power back to the grid.
+The NILD framework formulates workload distribution as a non-cooperative game where each task type independently seeks to minimize its operating cost. Tasks are allocated to data centers using an iterative heuristic that achieves Nash equilibrium, ensuring no further optimization is possible without increasing costs elsewhere.
+Simulation results demonstrate the effectiveness of NILD compared to traditional heuristics like Genetic Algorithm Load Distribution (GALD) and Force-Directed Load Distribution (FDLD). The framework achieves significant cost savings, reducing energy consumption by up to 54% in configurations with 16 data centers. Moreover, NILD maintains lower queueing delays and
+adapts efficiently to both sinusoidal and flat workload arrival patterns.
+The paper concludes that NILD provides a scalable and practical solution for cloud workload management, reducing costs and improving sustainability. Future work aims to refine the model by incorporating real-time workload variability and exploring hybrid multi-cloud environments.
+ 
+6.	Energy-Efficient Workflow Scheduling Based on Workflow Structures Under Deadline and Budget Constraints in the Cloud
+The paper addresses the critical challenge of workflow scheduling in cloud computing, focusing on energy efficiency while respecting user-defined deadlines and budgets. Workflow scheduling in the cloud is classified as an NP-complete problem due to the complexity of interdependent tasks and resource constraints. The study introduces two algorithms—Structure-based Multi- objective Workflow Scheduling with Optimal instance types (SMWSO) and Structure- based Multi-objective Workflow Scheduling with Heterogeneous instance types (SMWSH)—designed to optimize energy consumption, execution cost, and makespan.
+The proposed algorithms leverage workflow structural properties to determine the optimal
+number and types of virtual machines (VMs) required for task execution. SMWSO focuses on homogeneous instance types, while SMWSH incorporates heterogeneity to handle diverse
+workflows. Both algorithms integrate features like Dynamic Voltage and Frequency Scaling (DVFS) to minimize energy usage and employ techniques such as entry task duplication and pipeline merging to reduce execution time and idle slots.
+The algorithms were evaluated using real-world scientific workflows such as Montage, SIPHT, and Epigenomics, with simulations conducted on CloudSim. Results demonstrated that SMWSO and SMWSH achieved significant energy savings (over 50% in some cases) compared to the state-of-the-art Reliability and Energy-Efficient Workflow Scheduling (REEWS) algorithm.
+Additionally, SMWSO maintained a higher success rate under varying workflow sizes and workloads, proving the efficiency of its homogeneity approach.
+The paper concludes that incorporating workflow structures into scheduling decisions can significantly improve energy efficiency and resource utilization. Future work aims to extend
+these strategies to multi-cloud environments and address real-time workload variability using machine learning techniques.
+ 
+7.	Optimal Workload Allocation for Distributed Edge Clouds With Renewable Energy and Battery Storage
+The paper proposes an optimization framework for workload allocation in edge clouds (ECs) powered by renewable energy and equipped with battery storage. The aim is to minimize
+operational costs, reduce environmental impact, and maximize renewable energy utilization while maintaining Quality of Service (QoS). Edge clouds, distributed across geographical
+regions, face challenges due to fluctuating electricity prices, intermittent renewable energy, and varying workloads.
+The model considers a mix of renewable energy, grid electricity, and battery storage to address energy demands. It incorporates time-of-use electricity pricing and renewable energy availability to optimize energy procurement and usage. The framework employs Mixed-Integer Linear
+Programming (MILP) to allocate workloads dynamically, accounting for factors such as battery capacity, carbon emission rates, and grid limitations. The inclusion of battery storage allows
+surplus energy storage during off-peak hours and usage during peak periods, reducing reliance on grid power and mitigating the variability of renewable sources.
+The model is evaluated through simulations with real-world data, demonstrating significant cost savings and carbon emission reductions. Results show the benefits of integrating renewable
+energy and battery storage, including a 30-50% reduction in operational costs and lower carbon footprints. Sensitivity analysis reveals that higher renewable energy availability and larger
+battery capacities enhance system performance, while flexible energy trading ("sell-back" of excess energy) further improves cost efficiency.
+The research concludes that optimizing workload allocation with renewable energy integration offers a sustainable solution for edge cloud operations. Future work aims to explore dynamic scheduling with uncertainties, multi-cloud scenarios, and task deferrals to align with energy availability and demand response strategies.
+ 
+8.	A Workload Balanced Approach for Resource Scheduling in Cloud Computing
+The paper addresses the increasing demands on cloud-based multimedia applications, leading to heightened workloads and resource utilization challenges. It emphasizes the critical role of
+workload balancing as a Quality of Service (QoS) parameter, impacting response time,
+throughput, energy efficiency, and overall resource cost. The study introduces a Load Balanced Resource Scheduling (LBRS) algorithm to improve resource scheduling in cloud environments while optimizing performance and promoting green IT practices.
+LBRS categorizes resources into reservation-based and on-demand schemes, aligning with
+existing cloud pricing models like those of Amazon EC2. The algorithm dynamically allocates workloads based on cost and service rates, ensuring optimal resource utilization. A key
+innovation of LBRS is its ability to redistribute workloads effectively, balancing under- and over- utilized resources in real-time to maintain system reliability and fairness.
+The research evaluates LBRS using simulations implemented in PHP, with input parameters derived from realistic workload scenarios. Results demonstrate that LBRS achieves better
+resource cost efficiency compared to a previously proposed algorithm. The cost savings are
+particularly significant as workload arrival rates increase, highlighting LBRS's scalability and adaptability to varying cloud conditions.
+LBRS consistently outperforms traditional methods by reducing overall resource costs, improving system throughput, and ensuring load balancing under high demand. The paper
+concludes that the proposed algorithm contributes to the broader goals of sustainable computing by minimizing energy consumption and aligning with green IT principles. Future work includes exploring LBRS against other QoS parameters and integrating it with advanced meta-heuristic algorithms for further optimization.
+ 
+9.	An Efficient Resource Utilization Technique for Scheduling Scientific Workload in Cloud Computing Environment
+The paper introduces an Efficient Resource Utilization (ERU) model to optimize cache
+resources for scheduling scientific workloads in heterogeneous cloud environments. The study addresses key challenges like reducing power consumption, avoiding cache failures, and meeting workload deadlines, particularly under the constraints of last-level cache (LLC) management and Dynamic Voltage and Frequency Scaling (DVFS).
+The proposed ERU model employs a two-phase methodology. The first phase enhances
+bandwidth usage by enabling virtual computing nodes to share cache memory, while the second phase dynamically reallocates cache resources and reconfigures virtual machines to minimize LLC failures. This dynamic partitioning and cache resizing significantly reduce energy leakage and ensure efficient resource utilization.
+Unlike traditional models, the ERU approach integrates cache optimization and DVFS
+dynamically rather than treating them separately. It establishes ideal relationships between cache size, core frequency, and workload execution parameters. The optimization focuses on reducing energy consumption during task execution while maintaining performance levels and minimizing execution times.
+The model is validated using real-world scientific workflows, specifically SIPHT datasets. Experimental results show a 44.29% improvement in energy efficiency compared to DVFS- based scheduling methods and a 61.72% reduction in execution time compared to deadline-
+constrained cost optimization hybrid cloud (DCOH) techniques. These results demonstrate the ERU model's ability to balance energy savings with improved system throughput.
+In conclusion, the ERU model provides a scalable and efficient solution for managing resources in heterogeneous cloud computing frameworks. Future work will focus on applying advanced machine learning techniques and addressing diverse data-intensive workloads to enhance the model’s adaptability and performance.
+ 
+10.	An Efficient Task Scheduling for Cloud Computing Platforms Using Energy Management Algorithm: A Comparative Analysis of Workflow Execution Time
+The paper focuses on improving task scheduling in cloud computing platforms by introducing an
+Energy Management Algorithm (EMA) to optimize workflow execution time, energy consumption, and resource utilization. The study compares EMA with Shortest Job First (SJF)
+and Dynamic Voltage and Frequency Scaling (DVFS) algorithms to evaluate their performance on workflows such as CyberShake and Montage.
+The proposed EMA framework optimizes task allocation based on Makespan, prioritizing energy efficiency and resource usage. It leverages dynamic task scheduling and workload distribution to achieve lower execution times and better energy management. EMA incorporates techniques like task duplication and workload redistribution to optimize task execution on virtual machines (VMs).
+Simulation results, conducted using the Visual Studio .NET framework, demonstrate that EMA outperforms both SJF and DVFS in terms of Makespan and energy savings. For the CyberShake workflow, EMA reduced Makespan by 21.88% compared to SJF and 12.28% compared to
+DVFS. For the Montage workflow, EMA achieved a 25.73% reduction in Makespan compared to DVFS and 17.73% compared to SJF.
+The experiments also show that increasing the number of VMs reduces Makespan significantly, highlighting EMA’s scalability and adaptability to larger workloads. EMA achieves these
+improvements by dynamically allocating tasks to VMs with the shortest processing times and reconfiguring resources to balance workloads efficiently.
+The paper concludes that EMA is an effective and energy-efficient solution for task scheduling in cloud computing, with significant potential for further optimization. Future research will focus on integrating EMA with advanced machine learning techniques and exploring its applicability to multi-cloud and hybrid environments.
+ 
+11.	Task Scheduling and Server Provisioning for Energy-Efficient Cloud-Computing Data Centers
+The paper presents a framework for optimizing task scheduling and server provisioning in cloud- computing data centers to reduce energy consumption while maintaining task response time constraints. The authors formulate the problem as an integer programming optimization model, aiming to minimize the number of active servers required to handle tasks, thereby
+lowering operational costs and power usage.
+A key contribution of the study is the introduction of a greedy task-scheduling scheme. This scheme assigns tasks to the most energy-efficient servers first, reducing server energy
+consumption significantly compared to random scheduling methods. The framework
+dynamically balances task assignments to ensure deadlines are met without over-provisioning resources.
+Simulation results validate the model’s efficiency, showing that the proposed scheme reduces energy consumption by over 70 times compared to non-optimized, random-based scheduling approaches. These results highlight the impact of prioritizing server efficiency and minimizing the number of active servers. The framework also demonstrates robust scalability, handling a
+variety of workload types and arrival patterns.
+The paper further compares its proposed scheme to other energy-saving methods, such as
+network traffic management and cooling optimization, emphasizing that reducing the number of active servers is the most effective way to achieve energy savings. The authors conclude that the proposed model balances energy efficiency and performance, ensuring adherence to service-level agreements (SLAs).
+Future work includes extending the framework to handle more dynamic workload scenarios and integrating advanced machine learning models to enhance task prediction and resource
+provisioning.
+ 
+12.	Deep Learning-Driven Workload Prediction and Optimization for Load Balancing in Cloud Computing Environment
+The paper proposes a novel approach to workload prediction and task scheduling in cloud
+computing environments using an Improved Deep Max-out model for workload forecasting combined with a Tasmanian Devil-Bald Eagle Search (TDBES) optimization algorithm for task scheduling. The study addresses the growing challenges of dynamic workload distribution, resource optimization, and energy efficiency in cloud systems.
+The Deep Max-out model predicts future workloads by training on features like virtual machine (VM) capacity and task requirements, ensuring accurate predictions with minimal errors. Metrics like RMSE, MAE, and MAP show the model's superior accuracy compared to traditional methods like CNN, RNN, and Bi-GRU. Prediction results demonstrate significant improvements in workload accuracy, with RMSE values as low as 0.102 compared to 0.344 for RNN and 1.182 for Bi-GRU.
+The TDBES algorithm optimizes task scheduling by balancing workloads across underloaded, equally loaded, and overloaded VMs. It combines the behavior of Tasmanian devils and bald eagles to enhance search efficiency in a meta-heuristic optimization framework. Key
+performance metrics include Makespan, migration cost, and migration efficiency. TDBES achieves a migration cost of 1.55 compared to 4.987 for DBOA and a migration efficiency of 0.0989, outperforming traditional optimization methods like WACO and MPSO.
+The proposed system's effectiveness is evaluated using the Google Cluster Workload Traces
+dataset. Results show significant reductions in execution time, Makespan, and communication costs. For example, the execution time for a task count of 2000 is reduced to 1648 seconds, much lower than other algorithms. Additionally, TDBES demonstrates rapid convergence with the least cost at the 26th iteration during optimization.
+The paper concludes that the proposed framework enhances resource utilization, improves task scheduling, and supports energy-efficient cloud operations. Future work aims to extend the
+model to hybrid and multi-cloud environments while integrating real-time prediction capabilities.
+ 
+13.	EARTH: Energy-Aware Autonomic Resource Scheduling in Cloud Computing
+The paper introduces EARTH (Energy-aware Autonomic Resource management TecHnique), a fuzzy logic-based resource scheduling framework designed to optimize energy consumption and resource utilization in cloud computing. With cloud data centers consuming significant energy and contributing to environmental issues, the study emphasizes reducing
+operational costs and carbon footprints while maintaining Service Level Agreements (SLAs).
+EARTH focuses on self-optimization, leveraging fuzzy logic for decision-making and rule-based execution of heterogeneous workloads. The proposed framework includes mechanisms to
+monitor resource utilization, analyze workload requirements, and execute scheduling actions dynamically. It considers energy consumption as a key Quality of Service (QoS) parameter alongside computing capacity, latency, and resource utilization.
+Simulations using CloudSim and real-world experiments demonstrate EARTH's effectiveness.
+Compared to traditional non-autonomic methods, EARTH improves resource utilization by up to 12.04% and reduces energy consumption by up to 17.02%. It achieves these results through
+efficient VM reallocation and workload prioritization, which also minimizes latency and enhances energy efficiency.
+The study compares EARTH to existing scheduling frameworks like PSO, ACO, and HEFT, highlighting its superior performance in handling both homogeneous and heterogeneous
+workloads. The fuzzy logic system dynamically adjusts workload priorities based on execution time, waiting time, and energy consumption.
+The paper concludes that EARTH provides a scalable, energy-efficient solution for managing cloud workloads. Future directions include integrating additional autonomic properties such as self-healing and exploring machine learning for further optimization in multi-cloud
+environments.
+ 
+14.	Energy-Aware Task Scheduling (EATS)
+Framework in Cloud Computing Infrastructure
+The paper proposes the Energy-Aware Task Scheduling (EATS) framework to optimize energy consumption in cloud computing environments, especially for divisible-load applications. With data centers consuming significant energy and contributing to environmental issues, EATS
+addresses the need for energy-efficient task scheduling to reduce costs and carbon footprints.
+The framework uses a master-worker model where tasks are distributed across heterogeneous computing workers based on their energy consumption and computational capacity. Tasks are sorted by size, and computing workers are prioritized by capacity to ensure efficient load
+distribution. The framework avoids frequent server startups and shutdowns, which consume up to 68% of the energy used at peak utilization, to optimize energy efficiency.
+The EATS scheduling algorithm incorporates a linear relationship between energy consumption and task load size. It calculates energy consumption based on factors like CPU utilization, load size, and execution time, ensuring tasks are assigned to the most energy-efficient servers.
+Experimental results reveal that CPU-bound tasks consume more energy than I/O-bound tasks, highlighting the importance of considering task types in scheduling decisions.
+The framework was tested using benchmarks like Mencoder and AIO_Stress, demonstrating its ability to reduce energy consumption significantly. For example, CPU utilization at 100% showed an average energy consumption of 244 watts, emphasizing the need to optimize load
+balancing for high energy efficiency.
+The study concludes that EATS provides a scalable solution for energy-efficient cloud
+computing. Future work will extend the framework to larger data center environments and compare it against other scheduling algorithms to evaluate its performance comprehensively.
+ 
+15.	Energy-Efficient Resource Management in Virtualized Cloud Data Centers
+The paper addresses the growing energy consumption in large-scale cloud data centers driven by the increasing demand for computational resources. It introduces an energy-efficient resource management system that reduces energy costs while maintaining Quality of Service (QoS) through continuous Virtual Machine (VM) consolidation and dynamic reallocation.
+The proposed framework uses live migration of VMs to dynamically reallocate workloads based on real-time utilization metrics, virtual network topology, and thermal states of physical nodes.
+By migrating underutilized VMs and shutting down idle servers, the system minimizes power consumption while avoiding overheating and ensuring SLA compliance.
+The authors propose a decentralized architecture with local and global resource managers. Local managers monitor resource utilization and initiate VM migrations under conditions like resource overutilization, network bottlenecks, or thermal overload. Global managers oversee
+migration commands and perform optimization tasks using heuristics for multi-dimensional bin- packing.
+Simulation results, conducted using an enhanced version of the CloudSim toolkit, show
+substantial energy savings. For example, the Minimization of Migrations (MM) policy reduced energy consumption by 83% compared to non-power-aware systems and by 66% compared to systems relying solely on Dynamic Voltage and Frequency Scaling (DVFS). The MM policy also reduced VM migrations significantly, striking a balance between energy efficiency and SLA
+adherence.
+The research identifies critical challenges, including balancing energy savings with performance and developing scalable algorithms for large-scale deployments. The study concludes that
+dynamic VM consolidation and live migration are key to achieving sustainable cloud data centers. Future work aims to integrate network and thermal optimizations into the resource management system and deploy the framework in real-world cloud environments.
+ 
+16.	Energy Efficiency and Scheduling Techniques Using Cloud Computing Methods Within Data Centers
+The paper addresses the energy consumption challenges of data centers, particularly in the
+context of increasing global demands for computational resources. It highlights the urgency of energy efficiency as data center power consumption is projected to rise significantly, potentially emitting 150 million metric tons of carbon annually by 2020. The study explores existing
+scheduling algorithms, energy-efficient workflows, and resource management approaches to mitigate these issues.
+A comprehensive review of traditional and modern scheduling techniques is provided, including heuristic, metaheuristic, and hybrid approaches. These algorithms aim to optimize resource
+allocation, minimize Makespan, and reduce energy wastage by dynamically adjusting task
+distribution and leveraging techniques like Dynamic Voltage and Frequency Scaling (DVFS).
+The paper also emphasizes the role of green data centers, which integrate advanced cooling systems, renewable energy sources, and virtualization to enhance energy efficiency.
+Virtualization is highlighted as a key strategy to improve server utilization, allowing multiple
+virtual machines to operate on fewer physical servers, thereby reducing idle power consumption.
+Several case studies and simulation results are presented, showcasing the potential for energy savings through optimized resource management. The authors compare methods such as Ant Colony Optimization, Particle Swarm Optimization, and Genetic Algorithms, concluding that hybrid approaches often yield better energy efficiency by balancing multiple constraints
+effectively.
+In conclusion, the paper identifies future research directions, such as integrating AI-driven task scheduling, improving the adaptability of algorithms for real-time workloads, and addressing the challenges of multi-cloud environments. These efforts aim to make cloud data centers more sustainable while maintaining high performance and service quality.
+ 
+17.	Energy-Efficient and Delay-Guaranteed Workload Allocation in IoT-Edge-Cloud Computing Systems
+The paper addresses the challenges of balancing energy efficiency and delay guarantees in IoT- edge-cloud computing systems, which are critical for delay-sensitive applications such as
+augmented reality and self-driving vehicles. It proposes a novel Delay-Based Workload
+Allocation (DBWA) algorithm leveraging the Lyapunov drift-plus-penalty theory to minimize energy consumption while meeting delay constraints.
+The proposed system integrates IoT devices, local edge servers, neighboring edge servers, and a central cloud. Workloads are dynamically allocated among these resources based on energy
+efficiency and delay requirements. The DBWA algorithm makes real-time decisions on workload allocation by minimizing queueing delays at edge servers and reducing energy usage through
+offloading tasks to optimal resources. Key contributions include:
+1.	Formulating an optimization model for delay-guaranteed and energy-efficient workload allocation.
+2.	Proposing DBWA, which ensures stable queueing systems and provides end-to-end (e2e) delay guarantees while optimizing energy consumption.
+3.	Introducing theoretical bounds for energy savings, demonstrating the algorithm’s efficiency under varying workloads.
+Simulation results show DBWA achieves significant improvements:
+•	Energy consumption is reduced by up to 25% compared to pure edge or cloud computing strategies.
+•	End-to-end delays are consistently minimized, with DBWA outperforming traditional methods under varying job arrival rates and task sizes.
+The study concludes that DBWA provides a scalable solution for energy-efficient and delay- sensitive IoT-edge-cloud systems. Future work includes adapting the framework for more
+complex multi-cloud environments and incorporating AI-based predictive models for workload management.
+ 
+18.	Flexibility-Based Energy and Demand
+Management in Data Centers: A Case Study for Cloud Computing
+The paper focuses on energy and demand management in cloud data centers to minimize operational costs and environmental impact. It emphasizes the importance of leveraging
+flexibility mechanisms, such as workload management, cooling systems, and backup power
+supplies, for energy efficiency and peak power demand reduction. The study introduces Green Service Level Agreements (Green SLA) and Green Supply-Demand Agreements (Green
+SDA) as innovative contractual models to enable demand-side management. Key flexibility mechanisms discussed include:
+1.	Workload Consolidation: Combines virtual machines onto fewer physical servers to reduce energy usage but may impact SLAs.
+2.	Load Shifting: Delays non-critical workloads to off-peak hours, leveraging SLAs for energy efficiency without service interruption.
+3.	Dynamic Voltage and Frequency Scaling (DVFS): Adjusts CPU performance to match workload demands, reducing energy consumption.
+4.	Migration: Transfers workloads between geographically distributed data centers to balance energy efficiency and SLA requirements.
+The study also explores cooling optimizations and uninterrupted power supply (UPS) systems, showing how these can contribute to significant energy savings when integrated with management systems. Experiments conducted on Hewlett Packard Enterprise’s lab infrastructure demonstrate:
+•	Up to 25% energy consumption reduction through consolidation and Green SLAs.
+•	50% reduction in peak power demand during demand-response periods using federated data center models.
+The paper concludes that integrating these mechanisms with intelligent energy management systems (EMS) offers scalable and cost-effective solutions. Future work involves expanding the applicability of these methods to dynamic and hybrid cloud environments.
+ 
+19.	Green Cloud Computing: Exploring Data Centre Energy Minimisation Strategies
+The paper explores energy minimization strategies in data centers to address the rising
+environmental impact of cloud computing. It highlights that while cloud computing reduces IT costs and increases operational flexibility, its energy demands contribute significantly to carbon emissions, now surpassing those of the aviation industry.
+The study identifies five key energy minimization strategies for achieving green cloud computing:
+1.	Dynamic Power Management (DPM): Dynamically powers down idle servers based on workload prediction but faces challenges like prediction inaccuracies and latency.
+2.	Virtualization: Allows multiple virtual machines (VMs) to share physical servers, reducing the number of active servers. However, live migration of VMs can strain network resources and increase cooling requirements.
+3.	Dynamic Voltage and Frequency Scaling (DVFS): Adjusts the CPU's power and
+frequency to save energy during low-demand periods. While effective, its implementation is limited by the processing delays introduced by voltage changes.
+4.	Cooling System Optimization: Proposes methods like airflow management, liquid cooling, and economizers to minimize energy use in cooling infrastructures.
+5.	Network Resource Management: Optimizes bandwidth allocation and uses adaptive link rates to reduce strain on network components, thereby lowering cooling
+requirements.
+The proposed solutions are evaluated against challenges such as balancing energy savings with Service Level Agreements (SLAs), managing workload migration, and addressing security risks in multitenant environments. Simulations and case studies indicate significant energy savings when combining these strategies, with reductions of up to 25% in power consumption.
+The paper concludes that adopting a holistic approach integrating these strategies can achieve substantial energy efficiency in data centers. Future research will explore AI-driven optimization techniques and the scalability of these strategies in hybrid and multi-cloud ecosystems.
+ 
+20.	Effective Cost and Energy-Aware Resource Allocation in Cloud Computing
+The paper introduces a novel Deadline and Cost Aware Scheduling (DCAS) algorithm
+combined with Dynamic Voltage and Frequency Scaling (DVFS) to optimize energy efficiency and cost in cloud computing. It addresses the challenge of balancing cost-effective resource
+allocation with power conservation while meeting Service Level Agreements (SLAs). The proposed system integrates two core components:
+1.	Server Consolidation: Reduces energy consumption by consolidating virtual machines (VMs) onto fewer physical servers and shutting down idle servers.
+2.	DVFS: Dynamically adjusts the processor's voltage and frequency based on workload requirements, reducing power consumption during low-demand periods.
+Key contributions of the DCAS algorithm include:
+•	Resource allocation that prioritizes user-defined parameters such as cost, deadlines, and power requirements.
+•	A cost-based priority scheduling mechanism that allocates tasks to VMs based on the number of hops, bandwidth, network delay, and security costs.
+•	Dynamic reallocation of resources during execution, ensuring efficient workload distribution and minimized power usage.
+Simulations conducted using the CloudSim toolkit demonstrate significant improvements. The proposed system reduces energy consumption by up to 37.5% compared to non-power-aware methods and achieves better resource utilization. Additionally, it ensures that user deadlines are met without compromising system performance.
+The study concludes that combining server consolidation and DVFS is an effective strategy for achieving energy-efficient and cost-aware resource allocation in cloud environments. Future
+research aims to extend this work by incorporating power-aware techniques in data center networks and optimizing for multi-cloud environments.
+ 
+21.	EEBA: Energy-Efficient and Bandwidth-Aware Workload Allocation Method for Data-Intensive Applications in Cloud Data Centers
+The paper introduces the Energy-Efficient and Bandwidth-Aware (EEBA) method for workload allocation in cloud data centers to address challenges in managing data-intensive applications. These challenges include high energy consumption, network congestion, and meeting Quality of Service (QoS) requirements, especially in geo-distributed cloud
+environments.
+EEBA formulates workload allocation as a multi-objective optimization problem to minimize workload makespan, data center energy consumption, and network congestion. The method employs a meta-heuristic genetic algorithm to find near-optimal solutions for task allocation across distributed virtual machines (VMs).
+Key contributions include:
+1.	Workload Allocation Optimization:
+o	EEBA minimizes energy consumption by consolidating workloads onto fewer active servers.
+o	It reduces data transfer delays and congestion by efficiently distributing tasks to servers with available bandwidth.
+2.	Genetic Algorithm Approach:
+o	Encoding of tasks as chromosomes and optimization through selection, crossover, and mutation operations.
+o	Balances tasks among VMs to improve resource utilization and reduces idle power consumption.
+Simulation results using CloudSim with synthetic and real-world traces demonstrate:
+•	A 32% reduction in workload makespan compared to benchmark algorithms.
+•	A 35% reduction in network traffic, highlighting EEBA’s effectiveness in minimizing congestion.
+The study concludes that EEBA effectively addresses energy and bandwidth constraints while optimizing performance for data-intensive applications. Future research will explore real-time workload variations and extend the approach to multi-cloud ecosystems.
+ 
+22.	Location-Aware Energy-Efficient Workload Allocation in Geo-Distributed Cloud Environment
+The paper addresses energy-efficient workload allocation in geo-distributed cloud data centers to optimize energy consumption while maintaining Quality of Service (QoS). The proposed
+approach considers both the execution time of tasks and the cost associated with data transfer
+delays. The authors develop the Location-Aware Energy-Efficient (LAEE) workload allocation algorithm using a meta-heuristic genetic algorithm to solve the non-linear optimization problem.
+The key objectives of the algorithm are:
+1.	Minimizing Makespan: Reducing the total execution time of data-intensive workloads by considering task allocation and data transfer times.
+2.	Energy Efficiency: Leveraging Dynamic Voltage and Frequency Scaling (DVFS) to adjust server power usage based on workload demands.
+3.	Delay Awareness: Incorporating network delays into the allocation process to optimize the placement of tasks near their associated data.
+Simulation results using CloudSim demonstrate that the LAEE algorithm significantly
+outperforms traditional methods such as Round Robin (RR), Shortest Job First (SJF), and other genetic-based algorithms in terms of makespan reduction and energy savings. The proposed method achieves:
+•	15%-28% improvement in workload makespan compared to RR and SJF.
+•	Up to 8% reduction in energy consumption when integrated with DVFS, demonstrating its potential for green computing.
+The paper concludes that the LAEE algorithm effectively balances energy efficiency and task execution times while reducing SLA violations. Future research aims to expand its applicability to real-time scenarios and explore hybrid multi-cloud environments.
+ 
+23.	Optimized Load-Balancing in Cloud Computing Based on Traffic and Workload-Aware VM Migration
+The paper introduces an Osmotic Hybrid Bee and Ant Colony with Future Utilization Prediction (OH-BAC-FUP) approach to improve load balancing and energy efficiency in cloud computing environments. The method addresses the challenges of managing traffic congestion and workload distribution across heterogeneous physical machines (PMs) and virtual machines (VMs).
+The OH-BAC-FUP approach leverages Linear Regression (LR) and Optimal Piecewise Linear Regression (OPLR) to predict current and future resource utilization, including CPU, memory,
+bandwidth, and storage. This prediction helps identify optimal PMs for VM migration to balance loads effectively. The system integrates a Multipath Traffic Routing (MTR) protocol to avoid network congestion by splitting traffic across multiple disjoint paths.
+To enhance energy efficiency, the Merge-and-Split-based Coalitional Game-theoretic (MSCG) scheme is introduced. This method partitions PMs into coalitions based on their
+workload levels and migrates VMs to minimize energy usage. The combined OH-BAC-FUP- MTR-MSCG approach ensures high energy efficiency by dynamically shutting down idle PMs while maintaining task reliability.
+Simulation results using the CloudSim API demonstrate the system's effectiveness. Key findings include:
+•	A 39.5% reduction in energy consumption compared to classical VM migration techniques.
+•	Significant improvements in SLA metrics, with reductions in SLA violations (SLAV) and SLA time achieved (SLATAH).
+•	A 74.6% decrease in performance degradation due to VM migration (PDM).
+•	An 85% reduction in VM migrations and fewer PM shutdowns, leading to enhanced system efficiency.
+The paper concludes that the OH-BAC-FUP-MTR-MSCG approach outperforms existing methods in load balancing, energy savings, and traffic management. Future work will explore
+further refinements, including real-time adaptability and broader applications across multi-cloud systems.
+ 
+24.	Quality and Energy Optimized Scheduling Technique for Executing Scientific Workload in Cloud Computing Environment
+The paper introduces the Quality and Energy Optimized Scheduling (QEOS) technique to address the challenges of executing data-intensive scientific workflows in heterogeneous cloud
+computing environments. Traditional workload scheduling models face limitations, such as high interaction costs and poor resource utilization, which lead to inefficiencies in energy
+consumption and processing time.
+QEOS leverages Dynamic Voltage and Frequency Scaling (DVFS) to minimize energy usage by dynamically adjusting CPU frequencies based on workload demands. The technique also
+optimizes task scheduling by balancing processing efficiency and resource usage, ensuring
+compliance with Service Level Agreements (SLAs) and Quality of Service (QoS) requirements. Key contributions include:
+1.	Efficient workload scheduling that reduces both energy consumption and processing time for heterogeneous cloud environments.
+2.	Incorporation of DVFS and optimized interaction cost models to enhance system performance without increasing execution overhead.
+3.	A multi-core framework that adapts dynamically to task demands, ensuring scalability and reduced turnaround times.
+Experimental evaluations were conducted using the CloudSim simulator and the Inspiral scientific workflow. Results show that QEOS significantly outperforms existing DVFS-based scheduling models. Specifically:
+•	Processing time is reduced by 87.82% on average compared to traditional methods.
+•	Average execution time improves by 91.46%, demonstrating its scalability for large workloads.
+•	Energy consumption decreases by 19.45%, achieving a favorable trade-off between system performance and energy efficiency.
+The study concludes that QEOS provides an effective solution for managing scientific workloads in cloud environments. Future work will focus on improving resource utilization and reducing
+I/O overhead through enhanced cloud resource management.
+ 
+25.	Workload Allocation Toward Energy Consumption-Delay Trade-Off in Cloud-Fog Computing Using Multi-Objective NPSO Algorithm
+The paper presents a Multi-Objective Non-Dominated Sorting Particle Swarm Optimization (NPSO) algorithm for workload allocation in cloud-fog computing environments. The study aims to address the trade-off between energy consumption and task delay, which are critical
+challenges for distributed computing systems supporting latency-sensitive applications like IoT and real-time data analytics.
+Key contributions of the algorithm include:
+1.	Energy-Delay Trade-Off:
+o	The NPSO algorithm optimizes resource allocation to balance energy efficiency with task execution delays.
+o	Incorporates objectives such as minimizing energy consumption and reducing task completion time to meet service requirements.
+2.	Fog-Cloud Collaboration:
+o	Integrates fog nodes for local processing to reduce latency and bandwidth usage, while leveraging cloud resources for computationally intensive tasks.
+3.	Dynamic Workload Management:
+o	Utilizes predictive modeling to dynamically allocate workloads based on resource availability and workload characteristics.
+o	Ensures scalability and adaptability to varying workloads and user demands.
+Simulation results show that the proposed algorithm significantly outperforms traditional methods such as Round Robin (RR) and First Come First Serve (FCFS). Specific findings include:
+•	A 28% reduction in energy consumption compared to baseline algorithms.
+•	A 32% improvement in task completion time, highlighting the efficiency of the fog- cloud collaboration.
+•	Enhanced resource utilization and reduced SLA violations.
+The study concludes that the NPSO algorithm provides an effective solution for optimizing workload allocation in cloud-fog systems, ensuring energy efficiency and low latency. Future
+research will focus on integrating real-time data streams and further refining resource allocation strategies for hybrid cloud-fog environments.
+ 
+

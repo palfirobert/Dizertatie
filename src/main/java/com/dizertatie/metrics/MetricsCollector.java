@@ -8,41 +8,52 @@ import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.hosts.Host;
 import org.cloudbus.cloudsim.hosts.HostStateHistoryEntry;
+import org.cloudbus.cloudsim.power.models.PowerModelHostSimple;
 import org.cloudbus.cloudsim.vms.Vm;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MetricsCollector {
 
     public SimulationResult collect(
             String schedulerName,
             String scenarioName,
+            List<Cloudlet> submittedCls,
             List<Cloudlet> finishedCls,
             List<Vm> allVms,
             Collection<Datacenter> datacenters,
             FaultInjector faultInjector,
             FailoverHandler failoverHandler) {
 
-        int total     = finishedCls.size();
-        int completed = (int) finishedCls.stream()
-                .filter(c -> c.getStatus() == Cloudlet.Status.SUCCESS).count();
-        int failed    = total - completed;
+        Map<Integer, Cloudlet> submittedByTask = submittedCls.stream()
+            .collect(Collectors.toMap(this::logicalTaskId, c -> c, (left, right) -> left));
 
-        double makespan = finishedCls.stream()
-                .filter(c -> c.getStatus() == Cloudlet.Status.SUCCESS)
-                .mapToDouble(Cloudlet::getFinishTime)
-                .max().orElse(0.0);
+        Map<Integer, Double> earliestSuccessByTask = finishedCls.stream()
+            .filter(c -> c.getStatus() == Cloudlet.Status.SUCCESS)
+            .collect(Collectors.toMap(
+                this::logicalTaskId,
+                Cloudlet::getFinishTime,
+                Math::min));
+
+        int total     = submittedByTask.size();
+        int completed = earliestSuccessByTask.size();
+        int failed    = Math.max(0, total - completed);
+
+        double makespan = earliestSuccessByTask.values().stream()
+            .max(Comparator.naturalOrder()).orElse(0.0);
         double throughput = makespan > 0 ? (double) completed / makespan : 0.0;
 
         int slaVio = 0;
-        for (Cloudlet c : finishedCls) {
-            if (c.getStatus() != Cloudlet.Status.SUCCESS) continue;
-            TaskRecord t = TaskMapper.getTask(c);
+        for (Map.Entry<Integer, Cloudlet> entry : submittedByTask.entrySet()) {
+            TaskRecord t = TaskMapper.getTask(entry.getValue());
             if (t == null) continue;
-            if (c.getFinishTime() > t.getEffectiveDeadlineSec()) slaVio++;
+            Double finish = earliestSuccessByTask.get(entry.getKey());
+            if (finish == null || finish > t.getEffectiveDeadlineSec()) slaVio++;
         }
         double slaRate = total > 0 ? (double) slaVio / total : 0.0;
 
@@ -55,7 +66,7 @@ public class MetricsCollector {
         double totalKWh      = totalWh / 1000.0;
         double energyPerTask = completed > 0 ? totalWh / completed : 0.0;
 
-        double avgCpu = computeAvgCpuUtilisation(finishedCls, allVms, makespan);
+        double avgCpu = computeAvgCpuUtilisation(earliestSuccessByTask, finishedCls, allVms, makespan);
 
         int    failedHosts  = faultInjector  != null ? faultInjector.getFailedHosts().size() : 0;
         int    recovered    = failoverHandler != null ? failoverHandler.getRecoveredCount()   : 0;
@@ -72,48 +83,67 @@ public class MetricsCollector {
     }
 
     /**
-     * Average CPU utilisation per VM (0-100%).
+     * Average VM busy-time utilization (0-100%) across all VMs.
      *
-     * For each VM we compute the wall-clock busy span:
-     *   busySpan = lastCloudletFinish - firstCloudletStart
-     * util = min(1.0, busySpan / makespan)
-     *
-     * Averaged across ALL VMs so idle VMs pull the average down.
-     * This reflects how differently each scheduler packs work onto VMs.
+     * For each successful logical task, we keep the earliest finishing cloudlet.
+     * Then per VM we compute busy span as lastFinish - firstStart and normalize by
+     * scenario makespan. Averaging across all VMs penalizes idle capacity and is
+     * sensitive to how each scheduler packs work.
      */
-    private double computeAvgCpuUtilisation(List<Cloudlet> cloudlets, List<Vm> allVms, double makespan) {
-        if (allVms.isEmpty() || makespan <= 0) return 0.0;
+    private double computeAvgCpuUtilisation(
+            Map<Integer, Double> earliestSuccessByTask,
+            List<Cloudlet> finishedCls,
+            List<Vm> allVms,
+            double makespan) {
 
-        // Track [firstStart, lastFinish] per VM
-        Map<Long, double[]> vmSpan = new HashMap<>();
-        for (Cloudlet c : cloudlets) {
+        if (allVms == null || allVms.isEmpty() || makespan <= 0.0) return 0.0;
+
+        Map<Integer, Cloudlet> earliestCloudletByTask = new HashMap<>();
+        for (Cloudlet c : finishedCls) {
             if (c.getStatus() != Cloudlet.Status.SUCCESS) continue;
+            int taskId = logicalTaskId(c);
+            Double earliestFinish = earliestSuccessByTask.get(taskId);
+            if (earliestFinish == null) continue;
+            if (Math.abs(c.getFinishTime() - earliestFinish) < 1e-6) {
+                earliestCloudletByTask.putIfAbsent(taskId, c);
+            }
+        }
+
+        Map<Long, double[]> vmSpan = new HashMap<>();
+        for (Cloudlet c : earliestCloudletByTask.values()) {
             Vm vm = c.getVm();
             if (vm == null || vm == Vm.NULL) continue;
-            double start  = c.getExecStartTime();
+            double start = Math.max(0.0, c.getExecStartTime());
             double finish = c.getFinishTime();
-            if (finish <= 0) continue;
-            vmSpan.compute(vm.getId(), (k, v) -> {
-                if (v == null) return new double[]{start, finish};
-                return new double[]{Math.min(v[0], start), Math.max(v[1], finish)};
+            if (finish <= start) continue;
+
+            vmSpan.compute(vm.getId(), (id, span) -> {
+                if (span == null) return new double[]{start, finish};
+                return new double[]{Math.min(span[0], start), Math.max(span[1], finish)};
             });
         }
 
-        double totalUtil = 0.0;
-        for (double[] span : vmSpan.values()) {
-            double busySpan = span[1] - span[0];
-            totalUtil += Math.min(1.0, busySpan / makespan);
+        double utilSum = 0.0;
+        for (Vm vm : allVms) {
+            double[] span = vmSpan.get(vm.getId());
+            if (span == null) continue;
+            double busySpan = Math.max(0.0, span[1] - span[0]);
+            utilSum += Math.min(1.0, busySpan / makespan);
         }
 
-        // Divide by ALL VMs — idle VMs contribute 0
-        return (totalUtil / allVms.size()) * 100.0;
+        return (utilSum / allVms.size()) * 100.0;
+    }
+
+    private int logicalTaskId(Cloudlet cloudlet) {
+        TaskRecord task = TaskMapper.getTask(cloudlet);
+        return task != null ? task.getId() : (int) cloudlet.getId();
     }
 
     private double accumulatedWh(Host host) {
         List<HostStateHistoryEntry> history = host.getStateHistory();
         if (history == null || history.isEmpty()) return 0.0;
         double totalJoules = 0.0;
-        var pm = host.getPowerModel();
+        PowerModelHostSimple pm = (PowerModelHostSimple) host.getPowerModel();
         for (int i = 1; i < history.size(); i++) {
             HostStateHistoryEntry prev = history.get(i - 1);
             HostStateHistoryEntry curr = history.get(i);
@@ -123,7 +153,7 @@ public class MetricsCollector {
             double util = totalMips > 0
                     ? Math.min(1.0, (prev.requestedMips() + curr.requestedMips()) / 2.0 / totalMips)
                     : 0.0;
-            try { totalJoules += pm.getPower(util) * dt; } catch (Exception ignored) {}
+            totalJoules += pm.getPower(util) * dt;
         }
         return totalJoules / 3_600.0;
     }

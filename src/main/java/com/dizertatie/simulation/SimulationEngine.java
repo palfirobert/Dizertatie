@@ -65,7 +65,8 @@ public class SimulationEngine {
         List<Vm> vms = buildVms(dcMap);
         broker.submitVmList(vms);
 
-        List<Cloudlet> runCloudlets = shallowCopy(cloudlets);
+        List<Cloudlet> logicalCloudlets = shallowCopy(cloudlets);
+        List<Cloudlet> runCloudlets = new ArrayList<>(logicalCloudlets);
 
         if (scheduler instanceof MultiObjectiveScheduler) {
             Map<Vm, String> regionMap = buildRegionMap(vms);
@@ -125,7 +126,7 @@ public class SimulationEngine {
 
         SimulationResult result = new MetricsCollector().collect(
                 scheduler.getName(), scenarioName,
-                finished, vms, dcList,
+                logicalCloudlets, finished, vms, dcList,
                 faultInjector, failoverHandler);
 
         System.out.println("[Engine] " + result);
