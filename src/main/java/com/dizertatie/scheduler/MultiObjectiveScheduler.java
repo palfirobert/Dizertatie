@@ -21,10 +21,13 @@ import java.util.*;
  */
 public class MultiObjectiveScheduler extends BaseScheduler {
 
-    private static final double W_TIME   = 0.40;
-    private static final double W_ENERGY = 0.30;
-    private static final double W_LOAD   = 0.20;
-    private static final double W_REGION = 0.10;
+    private static final double W_TIME    = 0.28;
+    private static final double W_ENERGY  = 0.20;
+    private static final double W_LOAD    = 0.15;
+    private static final double W_REGION  = 0.10;
+    private static final double W_DEADLINE = 0.17;
+    private static final double W_PRIORITY = 0.05;
+    private static final double W_FIT      = 0.05;
 
     private final Map<Vm, String> regionMap;
     private final List<Cloudlet>  replicaCloudlets = new ArrayList<>();
@@ -33,6 +36,8 @@ public class MultiObjectiveScheduler extends BaseScheduler {
     private double normLoad = 1.0;
     // Max estimated exec time across all VMs — for time normalisation
     private double maxExecTime = 3600.0;
+    private int minPriority = 0;
+    private int maxPriority = 1;
 
     public MultiObjectiveScheduler(Map<Vm, String> regionMap) {
         super("MultiObjective");
@@ -50,6 +55,17 @@ public class MultiObjectiveScheduler extends BaseScheduler {
         maxExecTime = cloudlets.stream()
             .mapToDouble(c -> estimatedExecTime(c, vms.get(0)))
             .max().orElse(3600.0);
+
+        // Priority range from this scenario for robust normalisation.
+        IntSummaryStatistics prStats = cloudlets.stream()
+            .map(this::task)
+            .filter(Objects::nonNull)
+            .mapToInt(TaskRecord::getPriority)
+            .summaryStatistics();
+        if (prStats.getCount() > 0) {
+            minPriority = prStats.getMin();
+            maxPriority = Math.max(minPriority + 1, prStats.getMax());
+        }
 
         // Schedule CRITICAL tasks first (shortest first), then ROUTINE (shortest first)
         List<Cloudlet> critical = new ArrayList<>();
@@ -124,17 +140,66 @@ public class MultiObjectiveScheduler extends BaseScheduler {
         String vmRegion = regionMap.getOrDefault(vm, SimulationConfig.REGION_EU_WEST);
         double regionCost = preferred.equalsIgnoreCase(vmRegion) ? 0.0 : 1.0;
 
+        // --- Deadline cost: normalized overrun risk against available slack
+        TaskRecord tr = task(c);
+        double deadlineCost = deadlineRisk(c, vm, tr);
+
+        // --- Priority cost: high-priority tasks penalize slow placements more
+        double priorityCost = priorityUrgency(tr) * timeCost;
+
+        // --- Fit cost: penalize VM-task resource mismatch (cores + RAM)
+        double fitCost = resourceFitCost(c, vm, tr);
+
         if (critical) {
-            // Critical: speed is everything, energy secondary, load still matters
+            // Critical: emphasize completion speed and deadline safety.
             return (W_TIME + W_ENERGY) * timeCost
-                 + W_LOAD             * loadCost
-                 + W_REGION           * regionCost;
+                 + W_DEADLINE          * deadlineCost
+                 + W_LOAD              * loadCost
+                 + W_REGION            * regionCost
+                 + W_PRIORITY          * priorityCost
+                 + W_FIT               * fitCost;
         }
 
         return W_TIME   * timeCost
              + W_ENERGY * energyCost
              + W_LOAD   * loadCost
-             + W_REGION * regionCost;
+             + W_REGION * regionCost
+             + W_DEADLINE * deadlineCost
+             + W_PRIORITY * priorityCost
+             + W_FIT      * fitCost;
+    }
+
+    private double deadlineRisk(Cloudlet c, Vm vm, TaskRecord tr) {
+        if (tr == null) return 0.5;
+        double execTime = estimatedExecTime(c, vm);
+        double release = Math.max(0.0, c.getSubmissionDelay());
+        double deadline = tr.getEffectiveDeadlineSec();
+        double slack = Math.max(1.0, deadline - release);
+        double projected = release + execTime;
+        if (projected <= deadline) {
+            return Math.max(0.0, 1.0 - ((deadline - projected) / slack));
+        }
+        double over = projected - deadline;
+        return Math.min(1.0, over / slack);
+    }
+
+    private double priorityUrgency(TaskRecord tr) {
+        if (tr == null) return 0.0;
+        if (maxPriority <= minPriority) return 0.0;
+        return Math.min(1.0, Math.max(0.0,
+                (double) (tr.getPriority() - minPriority) / (maxPriority - minPriority)));
+    }
+
+    private double resourceFitCost(Cloudlet c, Vm vm, TaskRecord tr) {
+        double cpuDemand = Math.max(1.0, c.getNumberOfPes());
+        double cpuCap = Math.max(1.0, vm.getNumberOfPes());
+        double cpuRatio = Math.min(1.0, cpuDemand / cpuCap);
+
+        double ramDemand = tr != null ? Math.max(1.0, tr.getRamMb()) : 1.0;
+        double ramCap = Math.max(1.0, vm.getRam().getCapacity());
+        double ramRatio = Math.min(1.0, ramDemand / ramCap);
+
+        return (cpuRatio + ramRatio) / 2.0;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
