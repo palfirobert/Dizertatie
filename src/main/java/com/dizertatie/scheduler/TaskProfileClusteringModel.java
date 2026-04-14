@@ -1,12 +1,13 @@
 package com.dizertatie.scheduler;
 
-import com.dizertatie.model.TaskRecord;
-import org.cloudbus.cloudsim.cloudlets.Cloudlet;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+
+import org.cloudbus.cloudsim.cloudlets.Cloudlet;
+
+import com.dizertatie.model.TaskRecord;
 
 /**
  * Lightweight unsupervised model that clusters tasks into scheduling profiles.

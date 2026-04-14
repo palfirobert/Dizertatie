@@ -1,11 +1,5 @@
 package com.dizertatie.scheduler;
 
-import com.dizertatie.config.SimulationConfig;
-import com.dizertatie.model.TaskRecord;
-import org.cloudbus.cloudsim.cloudlets.Cloudlet;
-import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
-import org.cloudbus.cloudsim.vms.Vm;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,6 +7,13 @@ import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import org.cloudbus.cloudsim.cloudlets.Cloudlet;
+import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
+import org.cloudbus.cloudsim.vms.Vm;
+
+import com.dizertatie.config.SimulationConfig;
+import com.dizertatie.model.TaskRecord;
 
 /**
  * Hybrid ML-assisted scheduler that keeps the multi-objective heuristic core
