@@ -24,7 +24,7 @@ import java.util.*;
  *   5. EnergyFlexibility (deferred large tasks)
  *
  * Schedulers:
- *   RoundRobin | SJF | EnergyAware | MultiObjective
+ *   RoundRobin | SJF | EnergyAware | MultiObjective | HybridMlMultiObjective
  */
 public class ExperimentLauncher {
 
@@ -55,7 +55,8 @@ public class ExperimentLauncher {
                 new RoundRobinScheduler(),
                 new ShortestJobFirstScheduler(),
                 new EnergyAwareScheduler(),
-                new MultiObjectiveScheduler(Collections.emptyMap())  // region map injected at runtime
+            new MultiObjectiveScheduler(Collections.emptyMap()),  // region map injected at runtime
+            new HybridMlMultiObjectiveScheduler(Collections.emptyMap())
         );
 
         // ── 3. Define scenarios ───────────────────────────────────────────────

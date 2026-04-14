@@ -23,6 +23,7 @@ import com.dizertatie.infrastructure.VmFactory;
 import com.dizertatie.metrics.MetricsCollector;
 import com.dizertatie.metrics.SimulationResult;
 import com.dizertatie.scheduler.BaseScheduler;
+import com.dizertatie.scheduler.HybridMlMultiObjectiveScheduler;
 import com.dizertatie.scheduler.MultiObjectiveScheduler;
 
 public class SimulationEngine {
@@ -68,7 +69,12 @@ public class SimulationEngine {
         List<Cloudlet> logicalCloudlets = shallowCopy(cloudlets);
         List<Cloudlet> runCloudlets = new ArrayList<>(logicalCloudlets);
 
-        if (scheduler instanceof MultiObjectiveScheduler) {
+        if (scheduler instanceof HybridMlMultiObjectiveScheduler) {
+            Map<Vm, String> regionMap = buildRegionMap(vms);
+            HybridMlMultiObjectiveScheduler freshHybrid = new HybridMlMultiObjectiveScheduler(regionMap);
+            freshHybrid.schedule(runCloudlets, vms);
+            runCloudlets.addAll(freshHybrid.getReplicaCloudlets());
+        } else if (scheduler instanceof MultiObjectiveScheduler) {
             Map<Vm, String> regionMap = buildRegionMap(vms);
             MultiObjectiveScheduler freshMos = new MultiObjectiveScheduler(regionMap);
             freshMos.schedule(runCloudlets, vms);
