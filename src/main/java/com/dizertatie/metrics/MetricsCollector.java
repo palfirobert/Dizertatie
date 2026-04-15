@@ -36,9 +36,12 @@ public class MetricsCollector {
 
         Map<Integer, Double> earliestSuccessByTask = finishedCls.stream()
             .filter(c -> c.getStatus() == Cloudlet.Status.SUCCESS)
+            .map(c -> Map.entry(logicalTaskId(c), c.getFinishTime()))
+            // Keep only logical tasks that were in the submitted scenario workload.
+            .filter(e -> submittedByTask.containsKey(e.getKey()))
             .collect(Collectors.toMap(
-                this::logicalTaskId,
-                Cloudlet::getFinishTime,
+                Map.Entry::getKey,
+                Map.Entry::getValue,
                 Math::min));
 
         int total     = submittedByTask.size();

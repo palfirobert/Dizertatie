@@ -36,6 +36,20 @@ import com.dizertatie.scheduler.ShortestJobFirstScheduler;
  */
 public class ExperimentLauncher {
 
+    private static final class Scenario {
+        private final String name;
+        private final List<Cloudlet> cloudlets;
+        private final boolean fault;
+        private final double faultPct;
+
+        private Scenario(String name, List<Cloudlet> cloudlets, boolean fault, double faultPct) {
+            this.name = name;
+            this.cloudlets = cloudlets;
+            this.fault = fault;
+            this.faultPct = faultPct;
+        }
+    }
+
     public static void main(String[] args) {
         System.out.println("╔══════════════════════════════════════════════════════════╗");
         System.out.println("║  Cloud Workload Scheduler — Dissertation Experiment      ║");
@@ -44,9 +58,9 @@ public class ExperimentLauncher {
         // ── 1. Load dataset ───────────────────────────────────────────────────
         List<Cloudlet> allCloudlets;
         try {
-            var loader  = new DatasetLoader();
-            var mapper  = new TaskMapper();
-            var records = loader.load();
+            DatasetLoader loader = new DatasetLoader();
+            TaskMapper mapper = new TaskMapper();
+            List<com.dizertatie.model.TaskRecord> records = loader.load();
             allCloudlets = mapper.mapAll(records);
             System.out.printf("[Launcher] Mapped %d cloudlets from dataset%n", allCloudlets.size());
         } catch (IOException e) {
@@ -67,13 +81,6 @@ public class ExperimentLauncher {
             new HybridMlMultiObjectiveScheduler(Collections.emptyMap())
         );
 
-        // ── 3. Define scenarios ───────────────────────────────────────────────
-        // Each scenario is: (name, cloudlet-filter, injectFaults, faultPct)
-        record Scenario(String name,
-                        List<Cloudlet> cloudlets,
-                        boolean fault,
-                        double faultPct) {}
-
         List<Scenario> scenarios = List.of(
             new Scenario("MorningPeak",
                 ScenarioFilter.morningPeak(allCloudlets),       false, 0.0),
@@ -92,7 +99,7 @@ public class ExperimentLauncher {
         System.out.printf("%-22s %8s%n", "Scenario", "Tasks");
         System.out.println("-".repeat(32));
         for (Scenario s : scenarios) {
-            System.out.printf("%-22s %8d%n", s.name(), s.cloudlets().size());
+            System.out.printf("%-22s %8d%n", s.name, s.cloudlets.size());
         }
         System.out.println();
 
@@ -102,22 +109,22 @@ public class ExperimentLauncher {
         int current = 0;
 
         for (Scenario scenario : scenarios) {
-            if (scenario.cloudlets().isEmpty()) {
-                System.out.printf("[Launcher] SKIP '%s' — no tasks in window%n", scenario.name());
+            if (scenario.cloudlets.isEmpty()) {
+                System.out.printf("[Launcher] SKIP '%s' — no tasks in window%n", scenario.name);
                 continue;
             }
             for (BaseScheduler scheduler : schedulers) {
                 current++;
                 System.out.printf("%n[Launcher] Run %d/%d  %-22s × %s%n",
-                        current, total, scenario.name(), scheduler.getName());
+                        current, total, scenario.name, scheduler.getName());
 
                 try {
                     SimulationEngine engine = new SimulationEngine(
-                            scenario.name(),
+                            scenario.name,
                             scheduler,
-                            scenario.cloudlets(),
-                            scenario.fault(),
-                            scenario.faultPct());
+                            scenario.cloudlets,
+                            scenario.fault,
+                            scenario.faultPct);
 
                     SimulationResult result = engine.run();
                     allResults.add(result);

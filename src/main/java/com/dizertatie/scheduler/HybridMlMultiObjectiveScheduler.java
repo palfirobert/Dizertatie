@@ -13,6 +13,7 @@ import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import org.cloudbus.cloudsim.vms.Vm;
 
 import com.dizertatie.config.SimulationConfig;
+import com.dizertatie.dataset.TaskMapper;
 import com.dizertatie.model.TaskRecord;
 
 /**
@@ -238,6 +239,7 @@ public class HybridMlMultiObjectiveScheduler extends BaseScheduler {
                 .setUtilizationModelRam(c.getUtilizationModelRam())
                 .setUtilizationModelBw(c.getUtilizationModelBw())
                 .setSubmissionDelay(c.getSubmissionDelay());
+        TaskMapper.registerClone((int) r.getId(), (int) c.getId());
         return r;
     }
 }

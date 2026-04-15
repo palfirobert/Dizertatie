@@ -14,11 +14,11 @@ SJF,MixedDaily,28.737150,2.9900,9611,97.6872
 EnergyAware,MixedDaily,28.737150,2.9919,9605,97.4192
 MultiObjective,MixedDaily,28.730724,2.8742,9996,77.5304
 HybridMlMultiObjective,MixedDaily,28.730724,2.8734,9999,69.2353
-RoundRobin,FaultScenario,3.543032,1.1062,3203,29.6065
-SJF,FaultScenario,3.531871,1.1010,3208,29.2182
-EnergyAware,FaultScenario,3.532476,1.1032,3202,29.3226
-MultiObjective,FaultScenario,3.528358,1.0532,3350,19.5618
-HybridMlMultiObjective,FaultScenario,3.528358,1.0526,3352,19.3556
+RoundRobin,FaultScenario,3.441336,1.0744,3203,29.6065
+SJF,FaultScenario,3.430496,1.0694,3208,29.2182
+EnergyAware,FaultScenario,3.431083,1.0715,3202,29.3226
+MultiObjective,FaultScenario,3.427084,1.0230,3350,19.5618
+HybridMlMultiObjective,FaultScenario,3.427084,1.0224,3352,19.3556
 RoundRobin,EnergyFlexibility,28.729937,2.9868,9619,98.5251
 SJF,EnergyFlexibility,28.737150,2.9900,9611,97.6872
 EnergyAware,EnergyFlexibility,28.737150,2.9919,9605,97.4192
