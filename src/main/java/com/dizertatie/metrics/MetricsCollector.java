@@ -70,7 +70,7 @@ public class MetricsCollector {
         double totalKWh      = totalWh / 1000.0;
         double energyPerTask = completed > 0 ? totalWh / completed : 0.0;
 
-        double avgCpu = computeAvgCpuUtilisation(earliestSuccessByTask, finishedCls, allVms, makespan);
+        CpuUtilisation cpu = computeCpuUtilisation(finishedCls, allVms, makespan);
 
         int    failedHosts  = faultInjector  != null ? faultInjector.getFailedHosts().size() : 0;
         int    recovered    = failoverHandler != null ? failoverHandler.getRecoveredCount()   : 0;
@@ -82,7 +82,10 @@ public class MetricsCollector {
                 makespan, throughput,
                 slaVio, slaRate,
                 totalKWh, energyPerTask,
-                avgCpu,
+                cpu.fleetPercent,
+                cpu.activePercent,
+            cpu.activeVmCount,
+            cpu.activeVmRatio,
                 failedHosts, recovered, recoveryTime);
     }
 
@@ -94,48 +97,79 @@ public class MetricsCollector {
      * scenario makespan. Averaging across all VMs penalizes idle capacity and is
      * sensitive to how each scheduler packs work.
      */
-    private double computeAvgCpuUtilisation(
-            Map<Integer, Double> earliestSuccessByTask,
+    private CpuUtilisation computeCpuUtilisation(
             List<Cloudlet> finishedCls,
             List<Vm> allVms,
             double makespan) {
 
-        if (allVms == null || allVms.isEmpty() || makespan <= 0.0) return 0.0;
-
-        Map<Integer, Cloudlet> earliestCloudletByTask = new HashMap<>();
-        for (Cloudlet c : finishedCls) {
-            if (c.getStatus() != Cloudlet.Status.SUCCESS) continue;
-            int taskId = logicalTaskId(c);
-            Double earliestFinish = earliestSuccessByTask.get(taskId);
-            if (earliestFinish == null) continue;
-            if (Math.abs(c.getFinishTime() - earliestFinish) < 1e-6) {
-                earliestCloudletByTask.putIfAbsent(taskId, c);
-            }
+        if (allVms == null || allVms.isEmpty() || makespan <= 0.0) {
+            return new CpuUtilisation(0.0, 0.0, 0, 0.0);
         }
 
-        Map<Long, double[]> vmSpan = new HashMap<>();
-        for (Cloudlet c : earliestCloudletByTask.values()) {
+        Map<Long, List<double[]>> vmIntervals = new HashMap<>();
+        for (Cloudlet c : finishedCls) {
             Vm vm = c.getVm();
             if (vm == null || vm == Vm.NULL) continue;
             double start = Math.max(0.0, c.getExecStartTime());
             double finish = c.getFinishTime();
             if (finish <= start) continue;
 
-            vmSpan.compute(vm.getId(), (id, span) -> {
-                if (span == null) return new double[]{start, finish};
-                return new double[]{Math.min(span[0], start), Math.max(span[1], finish)};
-            });
+            vmIntervals.computeIfAbsent(vm.getId(), id -> new java.util.ArrayList<>())
+                    .add(new double[]{start, finish});
         }
 
         double utilSum = 0.0;
+        int activeVmCount = 0;
+        double activeUtilSum = 0.0;
         for (Vm vm : allVms) {
-            double[] span = vmSpan.get(vm.getId());
-            if (span == null) continue;
-            double busySpan = Math.max(0.0, span[1] - span[0]);
-            utilSum += Math.min(1.0, busySpan / makespan);
+            List<double[]> intervals = vmIntervals.get(vm.getId());
+            if (intervals == null || intervals.isEmpty()) continue;
+            intervals.sort(Comparator.comparingDouble(interval -> interval[0]));
+
+            double firstStart = intervals.get(0)[0];
+            double lastEnd = intervals.get(0)[1];
+            double mergedBusyTime = 0.0;
+            double currentStart = intervals.get(0)[0];
+            double currentEnd = intervals.get(0)[1];
+            for (int i = 1; i < intervals.size(); i++) {
+                double[] interval = intervals.get(i);
+                lastEnd = Math.max(lastEnd, interval[1]);
+                if (interval[0] <= currentEnd) {
+                    currentEnd = Math.max(currentEnd, interval[1]);
+                } else {
+                    mergedBusyTime += Math.max(0.0, currentEnd - currentStart);
+                    currentStart = interval[0];
+                    currentEnd = interval[1];
+                }
+            }
+            mergedBusyTime += Math.max(0.0, currentEnd - currentStart);
+            utilSum += Math.min(1.0, mergedBusyTime / makespan);
+
+            double activeWindow = Math.max(0.0, lastEnd - firstStart);
+            if (activeWindow > 0.0) {
+                activeVmCount++;
+                activeUtilSum += Math.min(1.0, mergedBusyTime / activeWindow);
+            }
         }
 
-        return (utilSum / allVms.size()) * 100.0;
+        double fleetPercent = (utilSum / allVms.size()) * 100.0;
+        double activePercent = activeVmCount > 0 ? (activeUtilSum / activeVmCount) * 100.0 : 0.0;
+        double activeVmRatio = allVms.isEmpty() ? 0.0 : (double) activeVmCount / allVms.size();
+        return new CpuUtilisation(fleetPercent, activePercent, activeVmCount, activeVmRatio);
+    }
+
+    private static final class CpuUtilisation {
+        private final double fleetPercent;
+        private final double activePercent;
+        private final int activeVmCount;
+        private final double activeVmRatio;
+
+        private CpuUtilisation(double fleetPercent, double activePercent, int activeVmCount, double activeVmRatio) {
+            this.fleetPercent = fleetPercent;
+            this.activePercent = activePercent;
+            this.activeVmCount = activeVmCount;
+            this.activeVmRatio = activeVmRatio;
+        }
     }
 
     private int logicalTaskId(Cloudlet cloudlet) {

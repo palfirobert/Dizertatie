@@ -46,16 +46,18 @@ public class ResultsExporter {
         try (PrintWriter pw = writer(file)) {
             pw.println("Scheduler,Scenario,TotalTasks,CompletedTasks,FailedTasks," +
                        "Makespan_s,Throughput_tasks_per_s,SlaViolations,SlaViolationRate_pct," +
-                       "TotalEnergy_kWh,EnergyPerTask_Wh,AvgCpuUtilisation_pct," +
+                       "TotalEnergy_kWh,EnergyPerTask_Wh,AvgCpuUtilisation_pct,ActiveCpuUtilisation_pct," +
+                       "ActiveVmCount,ActiveVmRatio_pct," +
                        "FailedHosts,RecoveredCloudlets,RecoveryTime_s");
             for (SimulationResult r : results) {
-                pw.printf("%s,%s,%d,%d,%d,%.3f,%.6f,%d,%.2f,%.6f,%.4f,%.4f,%d,%d,%.3f%n",
+                pw.printf("%s,%s,%d,%d,%d,%.3f,%.6f,%d,%.2f,%.6f,%.4f,%.4f,%.4f,%d,%.2f,%d,%d,%.3f%n",
                     r.getSchedulerName(), r.getScenarioName(),
                     r.getTotalTasks(), r.getCompletedTasks(), r.getFailedTasks(),
                     r.getMakespan(), r.getThroughput(),
                     r.getSlaViolations(), r.getSlaViolationRate() * 100.0,
                     r.getTotalEnergyKWh(), r.getEnergyPerTask(),
-                    r.getAvgCpuUtilisation(),
+                    r.getAvgCpuUtilisation(), r.getActiveCpuUtilisation(),
+                    r.getActiveVmCount(), r.getActiveVmRatio() * 100.0,
                     r.getFailedHosts(), r.getRecoveredCloudlets(), r.getRecoveryTimeSec());
             }
             System.out.println("[ResultsExporter] Written: " + file);
@@ -70,12 +72,14 @@ public class ResultsExporter {
         String file = dir + "energy_results.csv";
         try (PrintWriter pw = writer(file)) {
             pw.println("Scheduler,Scenario,TotalEnergy_kWh,EnergyPerTask_Wh," +
-                       "CompletedTasks,AvgCpuUtilisation_pct");
+                       "CompletedTasks,AvgCpuUtilisation_pct,ActiveCpuUtilisation_pct," +
+                       "ActiveVmCount,ActiveVmRatio_pct");
             for (SimulationResult r : results) {
-                pw.printf("%s,%s,%.6f,%.4f,%d,%.4f%n",
+                pw.printf("%s,%s,%.6f,%.4f,%d,%.4f,%.4f,%d,%.2f%n",
                     r.getSchedulerName(), r.getScenarioName(),
                     r.getTotalEnergyKWh(), r.getEnergyPerTask(),
-                    r.getCompletedTasks(), r.getAvgCpuUtilisation());
+                    r.getCompletedTasks(), r.getAvgCpuUtilisation(), r.getActiveCpuUtilisation(),
+                    r.getActiveVmCount(), r.getActiveVmRatio() * 100.0);
             }
             System.out.println("[ResultsExporter] Written: " + file);
         } catch (IOException e) {

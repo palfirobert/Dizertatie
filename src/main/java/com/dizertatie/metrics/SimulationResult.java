@@ -27,6 +27,9 @@ public class SimulationResult {
 
     // ── Utilisation ───────────────────────────────────────────────────────────
     private final double avgCpuUtilisation; // 0.0 – 100.0
+    private final double activeCpuUtilisation; // 0.0 – 100.0 over active VMs/time
+    private final int    activeVmCount;
+    private final double activeVmRatio; // 0.0 – 1.0
 
     // ── Fault / Failover ──────────────────────────────────────────────────────
     private final int    failedHosts;
@@ -39,7 +42,8 @@ public class SimulationResult {
             double makespan, double throughput,
             int slaViolations, double slaViolationRate,
             double totalEnergyKWh, double energyPerTask,
-            double avgCpuUtilisation,
+            double avgCpuUtilisation, double activeCpuUtilisation,
+            int activeVmCount, double activeVmRatio,
             int failedHosts, int recoveredCloudlets, double recoveryTimeSec) {
 
         this.schedulerName      = schedulerName;
@@ -54,6 +58,9 @@ public class SimulationResult {
         this.totalEnergyKWh     = totalEnergyKWh;
         this.energyPerTask      = energyPerTask;
         this.avgCpuUtilisation  = avgCpuUtilisation;
+        this.activeCpuUtilisation = activeCpuUtilisation;
+        this.activeVmCount      = activeVmCount;
+        this.activeVmRatio      = activeVmRatio;
         this.failedHosts        = failedHosts;
         this.recoveredCloudlets = recoveredCloudlets;
         this.recoveryTimeSec    = recoveryTimeSec;
@@ -72,6 +79,9 @@ public class SimulationResult {
     public double getTotalEnergyKWh()     { return totalEnergyKWh; }
     public double getEnergyPerTask()      { return energyPerTask; }
     public double getAvgCpuUtilisation()  { return avgCpuUtilisation; }
+    public double getActiveCpuUtilisation() { return activeCpuUtilisation; }
+    public int    getActiveVmCount()      { return activeVmCount; }
+    public double getActiveVmRatio()      { return activeVmRatio; }
     public int    getFailedHosts()        { return failedHosts; }
     public int    getRecoveredCloudlets() { return recoveredCloudlets; }
     public double getRecoveryTimeSec()    { return recoveryTimeSec; }

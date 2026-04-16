@@ -12,7 +12,7 @@ public final class SimulationConfig {
     public static final long RANDOM_SEED = 42L;
 
     // ── Dataset ──────────────────────────────────────────────────────────────
-    public static final String DATASET_PATH      = "synthetic_cloud_workload_10000.csv";
+    public static final String DATASET_PATH      = "synthetic_cloud_workload_20000.csv";
     public static final String PREDICTIONS_PATH  = "predictions.csv";
     public static final String RESULTS_DIR       = "results/";
 
@@ -60,7 +60,7 @@ public final class SimulationConfig {
     public static final long   VM_SIZE           = 50_000;
 
     // VMs per type per datacenter
-    public static final int    VMS_PER_TYPE      = 4;
+    public static final int    VMS_PER_TYPE      = 1;
 
     // ── Power models (Watts) ──────────────────────────────────────────────────
     public static final double POWER_FAST_MAX    = 300.0;
@@ -95,3 +95,4 @@ public final class SimulationConfig {
         return sameContinent ? 0.4 : 1.0;
     }
 }
+
