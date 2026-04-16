@@ -12,7 +12,7 @@ public final class SimulationConfig {
     public static final long RANDOM_SEED = 42L;
 
     // ── Dataset ──────────────────────────────────────────────────────────────
-    public static final String DATASET_PATH      = "synthetic_cloud_workload_20000.csv";
+    public static final String DATASET_PATH      = "synthetic_cloud_workload_10000_v2.csv";
     public static final String PREDICTIONS_PATH  = "predictions.csv";
     public static final String RESULTS_DIR       = "results/";
 

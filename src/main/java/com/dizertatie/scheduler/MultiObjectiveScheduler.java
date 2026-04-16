@@ -29,13 +29,11 @@ import com.dizertatie.model.TaskRecord;
  */
 public class MultiObjectiveScheduler extends BaseScheduler {
 
-    private static final double W_TIME    = 0.28;
-    private static final double W_ENERGY  = 0.20;
-    private static final double W_LOAD    = 0.15;
-    private static final double W_REGION  = 0.10;
-    private static final double W_DEADLINE = 0.17;
-    private static final double W_PRIORITY = 0.05;
-    private static final double W_FIT      = 0.05;
+    private static final double W_TIME     = 0.35;
+    private static final double W_DEADLINE = 0.30;
+    private static final double W_LOAD     = 0.20;
+    private static final double W_ENERGY   = 0.10;
+    private static final double W_REGION   = 0.05;
 
     private final Map<Vm, String> regionMap;
     private final List<Cloudlet>  replicaCloudlets = new ArrayList<>();
@@ -152,29 +150,19 @@ public class MultiObjectiveScheduler extends BaseScheduler {
         TaskRecord tr = task(c);
         double deadlineCost = deadlineRisk(c, vm, tr);
 
-        // --- Priority cost: high-priority tasks penalize slow placements more
-        double priorityCost = priorityUrgency(tr) * timeCost;
-
-        // --- Fit cost: penalize VM-task resource mismatch (cores + RAM)
-        double fitCost = resourceFitCost(c, vm, tr);
-
         if (critical) {
-            // Critical: emphasize completion speed and deadline safety.
-            return (W_TIME + W_ENERGY) * timeCost
-                 + W_DEADLINE          * deadlineCost
-                 + W_LOAD              * loadCost
-                 + W_REGION            * regionCost
-                 + W_PRIORITY          * priorityCost
-                 + W_FIT               * fitCost;
+              // Critical tasks: emphasize latency/deadline, keep light load+region penalties.
+              return 0.45 * timeCost
+                  + 0.35 * deadlineCost
+                  + 0.15 * loadCost
+                  + 0.05 * regionCost;
         }
 
-        return W_TIME   * timeCost
-             + W_ENERGY * energyCost
-             + W_LOAD   * loadCost
-             + W_REGION * regionCost
-             + W_DEADLINE * deadlineCost
-             + W_PRIORITY * priorityCost
-             + W_FIT      * fitCost;
+           return W_TIME     * timeCost
+               + W_DEADLINE * deadlineCost
+               + W_LOAD     * loadCost
+               + W_ENERGY   * energyCost
+               + W_REGION   * regionCost;
     }
 
     private double deadlineRisk(Cloudlet c, Vm vm, TaskRecord tr) {

@@ -22,13 +22,11 @@ import com.dizertatie.model.TaskRecord;
  */
 public class HybridMlMultiObjectiveScheduler extends BaseScheduler {
 
-    private static final double BASE_TIME = 0.28;
-    private static final double BASE_ENERGY = 0.20;
-    private static final double BASE_LOAD = 0.15;
-    private static final double BASE_REGION = 0.10;
-    private static final double BASE_DEADLINE = 0.17;
-    private static final double BASE_PRIORITY = 0.05;
-    private static final double BASE_FIT = 0.05;
+    private static final double BASE_TIME = 0.35;
+    private static final double BASE_DEADLINE = 0.30;
+    private static final double BASE_LOAD = 0.20;
+    private static final double BASE_ENERGY = 0.10;
+    private static final double BASE_REGION = 0.05;
     private static final double ML_BLEND = 0.30;
 
     private final Map<Vm, String> regionMap;
@@ -136,30 +134,23 @@ public class HybridMlMultiObjectiveScheduler extends BaseScheduler {
         double regionCost = preferred.equalsIgnoreCase(vmRegion) ? 0.0 : 1.0;
 
         double deadlineCost = deadlineRisk(c, vm, tr);
-        double priorityCost = priorityUrgency(tr) * timeCost;
-        double fitCost = resourceFitCost(c, vm, tr);
-
         double heuristicScore;
         if (critical) {
-            heuristicScore = (BASE_TIME + BASE_ENERGY) * timeCost
-                    + BASE_DEADLINE * deadlineCost
-                    + BASE_LOAD * loadCost
-                    + BASE_REGION * regionCost
-                    + BASE_PRIORITY * priorityCost
-                    + BASE_FIT * fitCost;
+            heuristicScore = 0.45 * timeCost
+                + 0.35 * deadlineCost
+                + 0.15 * loadCost
+                + 0.05 * regionCost;
         } else {
             heuristicScore = BASE_TIME * timeCost
-                    + BASE_ENERGY * energyCost
-                    + BASE_LOAD * loadCost
-                    + BASE_REGION * regionCost
                     + BASE_DEADLINE * deadlineCost
-                    + BASE_PRIORITY * priorityCost
-                    + BASE_FIT * fitCost;
+                + BASE_LOAD * loadCost
+                + BASE_ENERGY * energyCost
+                + BASE_REGION * regionCost;
         }
 
         TaskProfileClusteringModel.Profile profile = profileModel.predictProfile(tr);
         double mlScore = mlAdjustment(profile, timeCost, energyCost, loadCost, regionCost,
-                deadlineCost, priorityCost, fitCost, critical);
+            deadlineCost, critical);
 
         return (1.0 - ML_BLEND) * heuristicScore + ML_BLEND * mlScore;
     }
@@ -170,20 +161,17 @@ public class HybridMlMultiObjectiveScheduler extends BaseScheduler {
                                 double loadCost,
                                 double regionCost,
                                 double deadlineCost,
-                                double priorityCost,
-                                double fitCost,
                                 boolean critical) {
         switch (profile) {
             case LATENCY_SENSITIVE:
                 return 0.45 * timeCost
                         + 0.35 * deadlineCost
-                        + 0.10 * priorityCost
                         + 0.10 * loadCost;
             case RESOURCE_HEAVY:
-                return 0.40 * fitCost
-                        + 0.25 * loadCost
-                        + 0.20 * timeCost
-                        + 0.15 * energyCost;
+                return 0.35 * loadCost
+                        + 0.30 * timeCost
+                        + 0.25 * energyCost
+                        + 0.10 * deadlineCost;
             case BALANCED:
             default:
                 if (critical) {
@@ -196,8 +184,8 @@ public class HybridMlMultiObjectiveScheduler extends BaseScheduler {
                 return 0.30 * energyCost
                         + 0.25 * timeCost
                         + 0.20 * loadCost
-                        + 0.15 * regionCost
-                        + 0.10 * fitCost;
+                        + 0.15 * deadlineCost
+                        + 0.10 * regionCost;
         }
     }
 
