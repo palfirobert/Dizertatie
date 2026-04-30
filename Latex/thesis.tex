@@ -1,0 +1,286 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%
+%%% File: thesis.tex, version 0.2, May 2020
+%%%
+%%% =============================================
+%%% This file contains a template that can be used with the package
+%%% cs.sty and LaTeX2e to produce a thesis that meets the requirements
+%%% of the Computer Science Department from the Technical University of Cluj-Napoca
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt,a4paper,twoside]{report}
+\usepackage{textcomp}
+\usepackage{cs}
+\usepackage{times}
+\usepackage{graphicx}
+\usepackage{latexsym}
+\usepackage{amsmath,amsbsy}
+\usepackage{amssymb}
+\usepackage[matrix,arrow]{xy}
+\usepackage{ae,aecompl}
+\usepackage{amstext}
+\usepackage{graphics}
+\usepackage{ae,aecompl}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{color}
+\usepackage{listings}
+
+\usepackage{tabularx}
+
+\usepackage{hyperref}
+
+\usepackage[english,romanian]{babel}
+\usepackage{pgfpages}
+
+\usepackage{ucs}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+
+
+\lstset{%
+    language=C,
+    basicstyle=\ttfamily,
+    keywordstyle=\bfseries,
+    commentstyle=\itshape,
+    escapechar=\#,
+    emphstyle=\bfseries\color{red}
+ }
+
+
+\usepackage{ifpdf}
+
+\graphicspath{{figures/}}
+\ifpdf
+  \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+\else
+  \DeclareGraphicsExtensions{.eps}
+\fi
+
+% \mastersthesis
+\diplomathesis
+% \leftchapter
+\centerchapter
+% \rightchapter
+\singlespace
+% \oneandhalfspace
+% \doublespace
+
+\renewcommand{\thesisauthor}{Prenume NUME}    %% Your name.
+\renewcommand{\thesismonth}{Septembrie}     %% Your month of graduation.
+\renewcommand{\thesisyear}{2025}      %% Your year of graduation.
+\renewcommand{\thesistitle}{TITLUL LUCRĂRII DE DISERTAȚIE}
+\renewcommand{\thesissupervisor}{titlul științific Prenume NUME}
+\newcommand{\utcnlogo}{\includegraphics[width=14.5cm]{sigla.jpg}}
+
+%\renewcommand{\thesisdedication}{P'arin'tilor mei}
+
+\begin{document}
+
+\begin{titlepage}
+\vspace*{-3cm}
+%\noindent \includegraphics*[width=6.04in, height=0.98in, keepaspectratio=false]{sigla}
+\utcnlogo
+\begin{center}
+\textbf{FACULTATEA DE AUTOMATICĂ ȘI CALCULATOARE}\\
+\textbf{DEPARTAMENTUL CALCULATOARE}\\
+
+\vspace{5cm}
+
+\Large {\textbf\thesistitle \\}
+\vspace {1cm}
+\large {LUCRARE DE DISERTAȚIE}\\
+
+\vspace{8cm}
+
+%\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+\begin{tabularx}{\textwidth}{r l}  
+Absolvent masterand:   &  \textbf\thesisauthor \\
+ & \\
+Coordonator științific:  & \textbf\thesissupervisor \\
+\end{tabularx}
+
+\vspace{2.5cm}
+
+%\vspace{\stretch{1}}
+\thesismonth, \thesisyear %Iulie, 2025\\
+\end{center}
+\end{titlepage}
+
+\begin{titlepage}
+\phantom{1}
+\end{titlepage}
+
+
+\begin{titlepage}
+\vspace*{-3cm}
+%\noindent \includegraphics*[width=6.04in, height=0.98in, keepaspectratio=false]{sigla}
+\utcnlogo
+\begin{center}
+\textbf{FACULTATEA DE AUTOMATICĂ ȘI CALCULATOARE}\\
+\textbf{DEPARTAMENTUL CALCULATOARE}\\
+
+\vspace{1cm}
+
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+\begin{tabularx}{\textwidth}{lR}
+DECAN & DIRECTOR DEPARTAMENT \\
+\textbf{Prof.Dr.Ing. Vlad MUREȘAN} & \textbf{Prof.Dr.Ing. Rodica POTOLEA}\\
+\end{tabularx}
+
+\vspace {3.5cm}
+
+Student masterand:  \textbf\thesisauthor
+\vspace{1cm}
+
+\large \textbf\thesistitle \\
+\vspace {1cm}
+
+\end{center}
+
+% \vspace{1cm}
+
+\begin{flushleft}
+\begin{enumerate}
+ \item \textbf{Enunțul temei:} \textit{Scurtă descriere a temei lucrării de disertație și datele inițiale}
+
+ \item \textbf{Conținutul lucrării:} \textit{(enumerarea părților componente) Exemplu: Pagina de prezentare, aprecierile coordonatorului, titlul capitolului 1, titlul capitolului 2, \dots, titlul capitolului n, bibliografie, anexe.}
+
+ \item \textbf{Locul documentării:} \textit{Exemplu:} UTCN, Cluj-Napoca
+
+ \item \textbf{Consultanți:} 
+
+ \item \textbf{Data emiterii temei:} \textit{Exemplu:} 1 noiembrie 2024
+
+ \item \textbf{Data predării:} \textit{Exemplu:} 8 septembrie 2025
+\end{enumerate}
+
+\end{flushleft}
+
+\vspace{3.5cm}
+
+\begin{center}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+\begin{tabularx}{\textwidth}{X X}  %{lR}
+ & Student masterand: \dotfill \\
+ & \\
+ & Coordonator științific: \dotfill \\
+\end{tabularx}
+
+%\vspace{\stretch{1}}
+
+
+\end{center}
+
+\end{titlepage}
+
+
+\begin{titlepage}
+\phantom{1}
+\end{titlepage}
+
+
+\begin{titlepage}
+\vspace*{-3cm}
+%\noindent \includegraphics*[width=6.04in, height=0.98in, keepaspectratio=false]{sigla}
+\utcnlogo
+\begin{center}
+\textbf{FACULTATEA DE AUTOMATICĂ ȘI CALCULATOARE}\\
+\textbf{DEPARTAMENTUL CALCULATOARE}\\
+\end{center}
+
+\vspace{2cm}
+
+\begin{center}
+\textbf{Declarație pe proprie răspundere privind \\
+autenticitatea lucrării de disertație}
+\end{center}
+
+\vspace{1cm}
+
+Subsemnatul(a) \thesisauthor, legitimat(ă) cu \dots \dots seria \dots \dots nr. \dots \dots \dots, 
+CNP \dots \dots \dots \dots \dots \dots \dots \dots, autorul lucrării \thesistitle, elaborată  în vederea susținerii
+examenului de finalizare a studiilor de disertație la Facultatea de Automatică și Calculatoare, specializarea 
+\dots \dots \dots \dots \dots \dots \dots \dots \dots \dots \dots \dots \dots, din cadrul Universității 
+Tehnice din Cluj-Napoca, sesiunea \dots \dots \dots \dots a anului universitar 2024-2025, declar pe
+proprie răspundere că această lucrare este rezultatul propriei activități intelectuale, pe baza cercetărilor mele
+şi pe baza informațiilor obținute din surse care au fost citate în textul lucrării și în bibliografie.
+
+Declar că această lucrare nu conține porțiuni plagiate, iar sursele bibliografice au fost folosite cu respectarea
+legislației române și a convențiilor internaționale privind drepturile de autor.
+
+Declar, de asemenea, că această lucrare nu a mai fost prezentată în fața unei alte comisii de examen de disertație.
+
+În cazul constatării ulterioare a unor declarații false, voi suporta sancțiunile administrative, respectiv,
+\textit{anularea examenului de disertație}.
+
+Sunt de acord ca, pe tot parcursul vieții, în cazul în care este necesar și se va dori verificarea
+autenticității lucrării mele să fiu identificat și verificat în baza datelor declarate de mine.
+\vspace{3cm}
+
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}%
+\hspace{-1cm}\begin{tabularx}{\textwidth}{l R l}  %{lR}
+Data & \thesisauthor & \\
+& \\
+\dots \dots \dots \dots  &  \dots \dots \dots \dots \dots \dots \dots \dots &  \\
+& \textit{Semnătura} &
+\end{tabularx}
+
+
+\end{titlepage}
+
+
+\begin{titlepage}
+\phantom{1}
+\end{titlepage}
+
+
+%\pagestyle{headings}
+
+\newenvironment{definition}[1][Definiție.]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+% ABSTRACT
+%\begin{abstract}
+% Descrierea sumară a lucrării, în câteva fraze.
+%\end{abstract}
+
+%\begin{titlepage}
+%\phantom{1}
+%\end{titlepage}
+
+%\thesistitle                    %% Generate the title page.
+%\authordeclarationpage                %% Generate the declaration page.
+
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\tableofcontents
+\newpage
+
+%\listoftables
+%\listoffigures
+
+\clearpage
+\newpage
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\include{ch1}
+\include{ch2}
+\include{ch3}
+\include{ch4}
+\include{ch5}
+\include{ch6}
+% \include{ch7}
+% \include{ch8}
+
+%\addcontentsline {toc}{chapter}{Bibliography}
+\bibliographystyle{IEEEtran}
+\bibliography{thesis}%same file name as for .bib
+
+\include{apendix}
+
+\end{document}

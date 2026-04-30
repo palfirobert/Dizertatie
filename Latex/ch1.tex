@@ -1,0 +1,136 @@
+
+%\setcounter{page}{\value{page}}
+\chapter{Introducere}
+\label{cap:Introducere}
+%\setcounter{page}{7}
+%\addtocounter{page}{6}
+\pagestyle{headings}
+Ce se scrie aici:
+\begin{itemize}
+    \item Contextul
+    \item Conturarea domeniului exact al temei
+    \item Se răspunde la întrebările: \textbf{ce} (s-a făcut)?, \textbf{de ce} (s-a făcut, adică motivația; ce se rezolvă, la ce este util, etc.)?, \textbf{cum} (s-a făcut, adică particularitățile abordării, prezentate sumar).
+    \item Introducerea se termină cu o descriere a conținutului lucrării, de genul: Cap X descrie ..., Cap Y prezintă ...
+    \item Introducerea reprezintă o sinteză a lucrării, din care cititorul trebuie să-și poată da bine seama dacă lucrarea prezintă sau nu interes pentru el. 
+\item reprezintă cca 5\% din lucrare
+\end{itemize}
+
+\section{Contextul proiectului}
+Subcapitolul este scris cu font Times New Roman 14 puncte, bold. Pentru numerotare se folosesc cifre arabe, de ex: $X.Y$ unde X reprezintă numărul capitolului, iar Y numărul subcapitolului. Distanța de la titlul subcapitolului până la primul rând scris este de 8 puncte.
+
+\subsection{Subsecțiune}
+Distanța înainte și după titlul subcapitolului este de 8 puncte (acest lucru este realizat implicit în fișierul de stil furnizat). 
+Fiecare tabel introdus în lucrare este numerotat astfel: Tabel $x.y$ unde x reprezintă numărul capitolului, iar y numărul tabelului din capitol. 
+Se lasă o distanță de 8 puncte între text și tabel. (tabelul \ref{table:nonlin}).
+\begin{table}[ht]
+\centering                          % tabel centrat 
+\begin{tabular}{|c|c|c|c|}          % 4 coloane centrate 
+\hline\hline                        % linie orizontala dubla
+Case & Method\#1 & Method\#2 & Method\#3 \\ [0.5ex]   % inserare tabel
+%heading
+\hline                              % linie orizontal simpla
+1 & 50 & 837 & 970 \\               % corpul tabelului 
+2 & 47 & 877 & 230 \\
+3 & 31 & 25 & 415 \\[1ex]           % [1ex] adds vertical space
+\hline                              
+\end{tabular}
+\caption{Nonlinear Model Results}   % titlul tabelului
+\label{table:nonlin}                % \label{table:nonlin} introduce eticheta folosita pentru referirea tabelului in text; referirea in text se va face cu \ref{table:nonlin}
+\end{table}
+
+Fiecare figură introdusă în text este citată (de ex: în figura $x.y$ este prezentată ...) și numerotată.
+Numerotarea se face automat astfel: Figura $x.y$ unde x reprezintă numărul capitolului, iar y numărul figurii din acel capitol. Ex: figura \ref{fig:imag}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[]{image}	%numele fisierului
+    \caption{Numele figurii}
+    \label{fig:imag}
+\end{figure}
+
+
+Ecuații:
+\begin{equation}
+    \Delta =\sum_{i=1}^N w_i (x_i - \bar{x})^2 .
+\end{equation}
+
+\subsection{Alte exemple în \LaTeX}
+\label{subsec:s10} %aceasta trebuie adaugat pentru a referi o sectiune  
+
+Modus ponens modificat: 
+% aceasta este o ecuatie 
+\begin{equation} 
+  \frac{a \land a \rightarrow b}
+       {b}
+\label{eq:e50}
+\end{equation}
+
+Acolada: 
+
+\[\left \{ 
+    \begin{array}{l}
+        p =\frac{x}{x+y+z} \\
+        q = \frac{y}{x+y+z}\\ 
+        r = \frac{z}{x+y+z}
+    \end{array}\right.
+\]
+        
+Itemi ne-numerotați:  
+\begin{itemize}
+    \item numărul 1 
+    \item numărul 2 
+    \item numărul 3 
+\end{itemize}
+
+Itemi numerotați:
+\begin{enumerate}
+    \item numărul 1 
+    \item numărul 2 
+    \item numărul 3 
+\end{enumerate}
+
+%asa se citeaza o lucrare                    
+Anumiți autori spun că  \cite{Zhou04} 
+
+
+Un tabel mai complicat este \ref{Mom}.
+\begin{table}
+      \begin{center}
+            \begin{tabular}{|l|l|l|l|l|l|l|}
+                \hline 
+                & \multicolumn{3}{c|}{belief} & \multicolumn{3}{c|}{atomicity} \\
+                \cline{2-7}
+                & $poor$ & $avg$ & $good$ & $poor$ & $avg$ & $good$ \\ 
+        	\hline
+                $success$   &  0.1    &  0.2    &  0.3    & 0.4    & 0.5    &  0.6     \\
+                $failure$   &  0.1    &  0.2    &  0.3    & 0.4    & 0.5    &  0.6     \\
+                                                    \hline
+	    \end{tabular}
+        \end{center}
+    \caption{Multiplicarea Opiniilor Multinomiale}
+    \label{Mom}
+\end{table}
+
+                                                                                                                                                                                                                                                                  
+Un algoritm poate fi scris astfel:
+%\usepackage{algorithm} si \usepackage{algorithmic}  trebuie incluse la inceputul documentului
+
+\begin{algorithm}
+ \caption{Commitment decision}
+  \label{ftalg}
+   \begin{algorithmic}
+     \IF{$Committed(G_{1},GR,\alpha)$} 
+      \STATE $BRT_{\alpha}$ = $PredictBRT(G_{1},GR,\alpha,C_{GR})$
+      \STATE $C_{\beta}$ = $ContextUpdate(C_{\beta},o)$
+      \STATE $BRT_{\beta}$ = $PredictBRT(G_{1},G_{2},\beta,C_{\beta})$
+      \STATE $BRT_{\alpha}^{o}$ = $BRTReplace(BRT_{\alpha},BRT_{\beta})$
+      \STATE $utility$ = $Eval(BRT_{\alpha}^{o})-Eval(BRT_{\alpha})$
+     \ENDIF
+      \IF{$utility \ge CommunicationCost(G_{2})$}
+        \STATE $Int.To(G_{1},Communicate(G_{1},G_{2},o))$
+      \ENDIF
+   \end{algorithmic}
+\end{algorithm}
+
+\section*{Mulțumiri}
+Mulțumiri lui Aristotel pentru Secțiunea \ref{subsec:s10} %Asa se refera o sectiune

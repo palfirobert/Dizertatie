@@ -1,0 +1,24 @@
+\babel@toc {romanian}{}\relax 
+\contentsline {chapter}{Capitolul{} \numberline {1}Introducere}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Contextul proiectului}{1}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}Subsecțiune}{1}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}Alte exemple în \LaTeX }{2}{subsection.1.1.2}%
+\contentsline {chapter}{Capitolul{} \numberline {2}Obiectivele cercetării}{4}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Conținut}{4}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Secțiune}{4}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Subsecțiune}{4}{subsection.2.2.1}%
+\contentsline {chapter}{Capitolul{} \numberline {3}Studiu bibliografic/Stadiul actual în domeniu}{5}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Abordări similare}{5}{section.3.1}%
+\contentsline {chapter}{Capitolul{} \numberline {4}Prezentarea proiectului}{6}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Precizări asupra conținutului și a modului de organizare}{6}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Subsecțiune}{6}{subsection.4.1.1}%
+\contentsline {chapter}{Capitolul{} \numberline {5}Rezultate teoretice și experimentale}{7}{chapter.5}%
+\contentsline {chapter}{Capitolul{} \numberline {6}Concluzii}{8}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Conținut}{8}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Detalii tehnice}{8}{section.6.2}%
+\contentsline {subsection}{\numberline {6.2.1}Dimensiune}{8}{subsection.6.2.1}%
+\contentsline {chapter}{Bibliografie}{9}{chapter*.3}%
+\contentsline {chapter}{Anexa{} \numberline {A}Diverse anexe}{10}{appendix.A}%
+\contentsline {chapter}{Anexa{} \numberline {B}Demonstrații matematice detaliate (dacă există)}{11}{appendix.B}%
+\contentsline {chapter}{Anexa{} \numberline {C}Pseudo-cod sau cod (dacă există)}{12}{appendix.C}%
+\contentsline {chapter}{Anexa{} \numberline {D}Articole publicate}{13}{appendix.D}%
