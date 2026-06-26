@@ -12,9 +12,10 @@ public final class SimulationConfig {
     public static final long RANDOM_SEED = 42L;
 
     // ── Dataset ──────────────────────────────────────────────────────────────
-    public static final String DATASET_PATH      = "synthetic_cloud_workload_10000_v2.csv";
+    // Overridable at runtime via -Ddataset.path=... and -Dresults.dir=...
+    public static final String DATASET_PATH      = System.getProperty("dataset.path", "synthetic_cloud_workload_10000_v2.csv");
     public static final String PREDICTIONS_PATH  = "predictions.csv";
-    public static final String RESULTS_DIR       = "results/";
+    public static final String RESULTS_DIR       = System.getProperty("results.dir", "results/");
 
     // ── Simulation time (seconds) ─────────────────────────────────────────────
     public static final double SIMULATION_LIMIT  = 86_400.0; // 24 h

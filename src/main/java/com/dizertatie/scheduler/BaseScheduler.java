@@ -1,13 +1,14 @@
 package com.dizertatie.scheduler;
 
-import com.dizertatie.dataset.TaskMapper;
-import com.dizertatie.model.TaskRecord;
-import org.cloudbus.cloudsim.cloudlets.Cloudlet;
-import org.cloudbus.cloudsim.vms.Vm;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.cloudbus.cloudsim.cloudlets.Cloudlet;
+import org.cloudbus.cloudsim.vms.Vm;
+
+import com.dizertatie.dataset.TaskMapper;
+import com.dizertatie.model.TaskRecord;
 
 /**
  * Base class for all schedulers.

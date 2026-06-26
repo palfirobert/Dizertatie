@@ -21,3 +21,16 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Thesis drafts, documents, figures and notes (not source code)
+/*.txt
+/*.docx
+/*.png
+dependency-reduced-pom.xml
+review_comments/
+
+# Generated experiment results
+results/
+
+# Run capture
+run_fault_check.txt
